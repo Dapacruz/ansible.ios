@@ -4,14 +4,10 @@
   gather_facts: False
 
   tasks:
-  - name: Default interface
-    ios_l2_interface:
-      name: '{{ item.name }}'
-      state: unconfigured
-    with_items: '{{ interfaces }}'
-
-  - name: Update interface description and shutdown
+  - name: Default interface, update description and shutdown
     ios_config:
+      before:
+        - default interface {{ item.name }}
       lines:
         - description {{ item.description }}
         - shutdown
