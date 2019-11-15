@@ -6,6 +6,7 @@
   - name: Run exec command
     ios_command:
       commands: '{{ command }}'
+      provider: '{{ cli }}'
     register: result
   
   - debug:

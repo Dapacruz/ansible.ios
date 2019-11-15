@@ -6,6 +6,7 @@
   - name: Backup Configuration
     ios_config:
       backup: yes
+      provider: '{{ cli }}'
       backup_options:
         dir_path: /configurations/backup_configurations
 ...
