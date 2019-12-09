@@ -4,9 +4,24 @@
   gather_facts: False
 
   tasks:
-  - name: Backup Configuration
-    ios_config:
-      backup: yes
-      backup_options:
-        dir_path: /configurations/ios/backup_configurations
+  - set_fact:
+      date: '{{ lookup("pipe", "date +%Y-%m-%d") }}'
+    run_once: true
+
+  - name: Create directory
+    file:
+      path: /configurations/ios/backup_configurations/{{ date }}
+      state: directory
+    delegate_to: localhost
+    run_once: true
+
+  - name: Backup Running Configuration
+    ios_command:
+      commands: show running-config
+    register: running_config
+
+  - name: Save Running Configuration to a File
+    copy:
+      content: '{{ running_config.stdout[0] }}'
+      dest: /configurations/ios/backup_configurations/{{ date }}/{{ ansible_host }}.config
 ...
