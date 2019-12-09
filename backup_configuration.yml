@@ -23,5 +23,5 @@
   - name: Save Running Configuration to a File
     copy:
       content: '{{ running_config.stdout[0] }}'
-      dest: /configurations/ios/configuration_backups/{{ date }}/{{ ansible_host }}.config
+      dest: /configurations/ios/configuration_backups/{{ date }}/{{ inventory_hostname }}.config
 ...
