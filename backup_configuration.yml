@@ -8,5 +8,5 @@
     ios_config:
       backup: yes
       backup_options:
-        dir_path: /configurations/backup_configurations
+        dir_path: /configurations/ios/backup_configurations
 ...
