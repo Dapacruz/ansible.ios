@@ -10,7 +10,7 @@
 
   - name: Create directory
     file:
-      path: /configurations/ios/backup_configurations/{{ date }}
+      path: /configurations/ios/configuration_backups/{{ date }}
       state: directory
     delegate_to: localhost
     run_once: true
@@ -23,5 +23,5 @@
   - name: Save Running Configuration to a File
     copy:
       content: '{{ running_config.stdout[0] }}'
-      dest: /configurations/ios/backup_configurations/{{ date }}/{{ ansible_host }}.config
+      dest: /configurations/ios/configuration_backups/{{ date }}/{{ ansible_host }}.config
 ...
