@@ -5,7 +5,7 @@
 
   tasks:
   - set_fact:
-      date: '{{ lookup("pipe", "date -d \"8 hours ago\" +%Y-%m-%d") }}'
+      date: '{{ lookup("pipe", "date -d "8 hours ago" +%Y-%m-%d") }}'
     run_once: true
 
   - name: Create directory
