@@ -1,0 +1,2 @@
+*.yml linguist-language=Ansible
+*.j2 linguist-language=Ansible
