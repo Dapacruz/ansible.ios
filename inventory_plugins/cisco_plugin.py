@@ -12,7 +12,7 @@ from ansible.errors import AnsibleError, AnsibleParserError
 from ansible.plugins.inventory import BaseInventoryPlugin
 
 DOCUMENTATION = r"""
-    name: cisco_ios_plugin
+    name: cisco_plugin
     plugin_type: inventory
     short_description: Returns Ansible inventory from NetBrain
     description: Returns Ansible inventory from NetBrain
@@ -20,18 +20,18 @@ DOCUMENTATION = r"""
       plugin:
           description: Get Cisco routers from NetBrain
           required: True
-          choices: ['cisco_ios_plugin']
+          choices: ['cisco_plugin']
 """
 
 
 class InventoryModule(BaseInventoryPlugin):
-    NAME = "cisco_ios_plugin"
+    NAME = "cisco_plugin"
 
     def verify_file(self, path):
         """return True/False if this is possibly a valid file for this plugin to consume"""
         if super(InventoryModule, self).verify_file(path):
             # base class verifies that file exists and is readable by current user
-            if path.endswith(("cisco_ios_inventory.yaml", "cisco_ios_inventory.yml")):
+            if path.endswith(("cisco_inventory.yaml", "cisco_inventory.yml")):
                 return True
         return False
 
