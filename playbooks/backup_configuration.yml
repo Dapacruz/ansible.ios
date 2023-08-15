@@ -1,27 +1,25 @@
-
 ---
 - hosts: all
-  gather_facts: False
+  gather_facts: false
 
   tasks:
-  - set_fact:
-      date: '{{ lookup("pipe", "TZ=America/Los_Angeles date +%Y-%m-%d") }}'
-    run_once: true
+    - set_fact:
+        date: '{{ lookup("pipe", "TZ=America/Los_Angeles date +%Y-%m-%d") }}'
+      run_once: true
 
-  - name: Create directory
-    file:
-      path: /configurations/ios/configuration_backups/{{ date }}
-      state: directory
-    delegate_to: localhost
-    run_once: true
+    - name: Create directory
+      file:
+        path: /configurations/ios/configuration_backups/{{ date }}
+        state: directory
+      delegate_to: localhost
+      run_once: true
 
-  - name: Backup Running Configuration
-    ios_command:
-      commands: show running-config
-    register: running_config
+    - name: Backup Running Configuration
+      ios_command:
+        commands: show running-config
+      register: running_config
 
-  - name: Save Running Configuration to a File
-    copy:
-      content: '{{ running_config.stdout[0] }}'
-      dest: /configurations/ios/configuration_backups/{{ date }}/{{ inventory_hostname }}.config
-...
+    - name: Save Running Configuration to a File
+      copy:
+        content: "{{ running_config.stdout[0] }}"
+        dest: /configurations/ios/configuration_backups/{{ date }}/{{ inventory_hostname }}.config

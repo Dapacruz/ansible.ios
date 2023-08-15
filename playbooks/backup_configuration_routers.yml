@@ -1,23 +1,21 @@
-
 ---
 - hosts: all
-  gather_facts: False
+  gather_facts: false
 
   tasks:
-  - name: Create directory
-    file:
-      path: /configurations/ios/configuration_backups/routers
-      state: directory
-    delegate_to: localhost
-    run_once: true
+    - name: Create directory
+      file:
+        path: /configurations/ios/configuration_backups/routers
+        state: directory
+      delegate_to: localhost
+      run_once: true
 
-  - name: Backup Running Configuration
-    ios_command:
-      commands: show running-config
-    register: running_config
+    - name: Backup Running Configuration
+      ios_command:
+        commands: show running-config
+      register: running_config
 
-  - name: Save Running Configuration to a File
-    copy:
-      content: '{{ running_config.stdout[0] }}'
-      dest: /configurations/ios/configuration_backups/routers/{{ inventory_hostname }}.config
-...
+    - name: Save Running Configuration to a File
+      copy:
+        content: "{{ running_config.stdout[0] }}"
+        dest: /configurations/ios/configuration_backups/routers/{{ inventory_hostname }}.config

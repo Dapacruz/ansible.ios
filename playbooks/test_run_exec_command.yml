@@ -1,14 +1,12 @@
-
 ---
 - hosts: switches
-  gather_facts: False
+  gather_facts: false
 
   tasks:
-  - name: Run exec command
-    ios_command:
-      commands: '{{ command }}'
-    register: result
-  
-  - debug:
-      var: result.stdout_lines[0]
-...
+    - name: Run exec command
+      ios_command:
+        commands: "{{ command }}"
+      register: result
+
+    - debug:
+        var: result.stdout_lines[0]

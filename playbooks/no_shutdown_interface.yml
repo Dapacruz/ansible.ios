@@ -1,16 +1,15 @@
 ---
 - hosts: all
-  gather_facts: False
+  gather_facts: false
 
   tasks:
-  - name: No shutdown interface
-    ios_config:
-      lines:
-        - no shutdown
-      parents: interface {{ item }}
-    with_items: '{{ interfaces }}'
-  
-  - name: Save running configuration when modified
-    ios_config:
-      save_when: modified
-...
+    - name: No shutdown interface
+      ios_config:
+        lines:
+          - no shutdown
+        parents: interface {{ item }}
+      with_items: "{{ interfaces }}"
+
+    - name: Save running configuration when modified
+      ios_config:
+        save_when: modified

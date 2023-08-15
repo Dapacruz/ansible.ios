@@ -1,19 +1,18 @@
 ---
 - hosts: all
-  gather_facts: False
+  gather_facts: false
 
   tasks:
-  - name: Default interface, update description and shutdown
-    ios_config:
-      before:
-        - default interface {{ item.name }}
-      lines:
-        - description {{ item.description }}
-        - shutdown
-      parents: interface {{ item.name }}
-    with_items: '{{ interfaces }}'
-  
-  - name: Save running configuration when modified
-    ios_config:
-      save_when: modified
-...
+    - name: Default interface, update description and shutdown
+      ios_config:
+        before:
+          - default interface {{ item.name }}
+        lines:
+          - description {{ item.description }}
+          - shutdown
+        parents: interface {{ item.name }}
+      with_items: "{{ interfaces }}"
+
+    - name: Save running configuration when modified
+      ios_config:
+        save_when: modified
