@@ -1,0 +1,39 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+Device State: {{ inventory_hostname_short | upper }}
+
+##### show version ##############################
+
+{{ version.stdout_lines[0] | join("\n") }}
+
+
+##### show ip interface brief ##############################
+
+{{ ip_interfaces.stdout_lines[0] | join("\n") }}
+
+
+##### show ip arp ##############################
+
+{{ arp_cache.stdout_lines[0] | join("\n") }}
+
+
+##### show ip route ##############################
+
+{{ route_table.stdout_lines[0] | join("\n") }}
+
+
+##### show ip ospf neighbor ##############################
+
+{% if ospf_neighbors.stdout_lines[0][0] %}
+{{ ospf_neighbors.stdout_lines[0] | join("\n") }}
+{% else %}
+No OSPF neighbors found.
+{% endif %}
+
+
+##### show ip bgp summary ##############################
+
+{% if bgp_neighbors.stdout_lines[0][0] %}
+{{ bgp_neighbors.stdout_lines[0] | join("\n") }}
+{% else %}
+No BGP neighbors found.
+{% endif %}

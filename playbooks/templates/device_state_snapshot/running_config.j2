@@ -1,0 +1,6 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+Running Configuration: {{ inventory_hostname_short | upper }}
+
+##### show running-config ##############################
+
+{{ running_config.stdout_lines[0] | join("\n") }}

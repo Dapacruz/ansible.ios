@@ -1,0 +1,104 @@
+---
+- name: Get Device State Snapshot
+  hosts: all
+  connection: local
+  gather_facts: false
+
+  pre_tasks:
+    - name: Get IOS Facts
+      cisco.ios.ios_facts:
+        gather_subset: min
+
+    - name: Get Current Date/Time
+      ansible.builtin.command:
+        cmd: env TZ="America/Los_Angeles" date +"%Y%m%dT%H%m%S"
+      changed_when: false
+      register: date_output
+
+    - name: Set Date Fact
+      ansible.builtin.set_fact:
+        date: "{{ date_output.stdout }}"
+
+    - name: Set Facts
+      ansible.builtin.set_fact:
+        device_state_snapshot_main: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_{{ date }}.txt"
+        device_state_snapshot_running_config: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_running_config_{{ date }}.txt"
+
+    - name: Ensure Output Directory Exists
+      ansible.builtin.file:
+        state: directory
+        path: "{{ playbook_dir }}/output"
+      delegate_to: localhost
+      run_once: true
+
+  tasks:
+    - name: show running-config
+      cisco.ios.ios_command:
+        commands: show running-config
+      register: running_config
+      when: save_config | bool
+
+    - name: show version
+      ios_command:
+        commands: show version
+      register: version
+
+    - name: show ip interface brief
+      ios_command:
+        commands: show ip interface brief
+      register: ip_interfaces
+
+    - name: show ip arp
+      ios_command:
+        commands: show ip arp
+      register: arp_cache
+
+    - name: show ip route
+      ios_command:
+        commands: show ip route
+      register: route_table
+
+    - name: show ip ospf neighbor
+      ios_command:
+        commands: show ip ospf neighbor
+      register: ospf_neighbors
+
+    - name: show ip bgp summary
+      ios_command:
+        commands: show ip bgp summary
+      register: bgp_neighbors
+
+  post_tasks:
+    - name: Render Main Template
+      ansible.builtin.template:
+        src: templates/device_state_snapshot/main.j2
+        dest: "{{ device_state_snapshot_main }}"
+      delegate_to: localhost
+
+    - name: Render Running Configuration Template
+      ansible.builtin.template:
+        src: templates/device_state_snapshot/running_config.j2
+        dest: "{{ device_state_snapshot_running_config }}"
+      delegate_to: localhost
+      when: save_config | bool
+
+    - name: Find Files to Attach
+      ansible.builtin.find:
+        paths: "{{ playbook_dir }}/output"
+        patterns:
+          - "*.xlsx"
+          - "*.txt"
+      register: files
+
+    - name: Mail Report
+      community.general.mail:
+        host: "{{ smtp_server }}"
+        port: "{{ smtp_port }}"
+        subject: "{{ inventory_hostname_short | upper }} Device State Snapshot"
+        body: Attached please find the device state snapshot files for {{ inventory_hostname_short | upper }}.
+        from: "{{ smtp_from }}"
+        to:
+          - "{{ smtp_to }}"
+        attach: "{{ files.files | json_query('[].path') }}"
+      ignore_errors: true
+      delegate_to: localhost
