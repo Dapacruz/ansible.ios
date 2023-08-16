@@ -73,45 +73,70 @@ class InventoryModule(BaseInventoryPlugin):
         self.inventory.add_group("corp")
         self.inventory.add_group("ios")
         self.inventory.add_group("nxos")
+        self.inventory.add_group("wan")
+        self.inventory.add_group("edge")
         self.inventory.add_group("rkat1_datacenter")
         self.inventory.add_group("sast1_datacenter")
         self.inventory.add_group("asbc1_datacenter")
 
-        corp_routing_devices = self._get_structured_inventory(
-            "All_Cisco_Corp_Routing_Devices"
-        )
-        regexp = re.compile(r"\d{3}lb\d{2}")
-        for device in corp_routing_devices:
-            hostname = device["name"].lower()
-            site = device["site"].split("\\")[-1].lower()
+        corp_routing_devices = {
+            "corp_edge_routers": self._get_structured_inventory(
+                "All_Ansible_Cisco_Corp_Edge_Routers"
+            ),
+            "corp_wan_routers": self._get_structured_inventory(
+                "All_Ansible_Cisco_Corp_WAN_Routers"
+            ),
+            "corp_routing_switches_ios": self._get_structured_inventory(
+                "All_Ansible_Cisco_Corp_Routing_Switches_IOS"
+            ),
+            "corp_routing_switches_nxos": self._get_structured_inventory(
+                "All_Ansible_Cisco_Corp_Routing_Switches_NXOS"
+            ),
+        }
+        regexp = re.compile(r"(\d{3}lb\d{2}|lab$)")
+        for group, devices in corp_routing_devices.items():
+            for device in devices:
+                hostname = device["name"].lower()
+                site = device["site"].split("\\")[-1].lower()
 
-            group = site.replace("-", "_")
-            self.inventory.add_group(group)
+                site_group = site.replace("-", "_")
+                self.inventory.add_group(site_group)
 
-            if regexp.search(hostname):
-                self.inventory.add_host(host=hostname, group="test")
+                if group == "corp_edge_routers":
+                    self.inventory.add_host(host=hostname, group="edge")
+                elif group == "corp_wan_routers":
+                    self.inventory.add_host(host=hostname, group="wan")
 
-            if "Nexus" in device["subTypeName"]:
-                self.inventory.add_host(host=hostname, group="nxos")
-                self.inventory.set_variable(hostname, "software", "NX-OS")
-            else:
-                self.inventory.add_host(host=hostname, group="ios")
-                self.inventory.set_variable(hostname, "software", "IOS")
+                if group in [
+                    "corp_edge_routers",
+                    "corp_wan_routers",
+                    "corp_routing_switches_ios",
+                ]:
+                    self.inventory.add_host(host=hostname, group="ios")
+                    self.inventory.set_variable(hostname, "software", "IOS")
+                else:
+                    self.inventory.add_host(host=hostname, group="nxos")
+                    self.inventory.set_variable(hostname, "software", "NX-OS")
 
-            if site.lower().startswith("rkat1"):
-                self.inventory.add_host(host=hostname, group="rkat1_datacenter")
-            elif site.lower().startswith("sast1"):
-                self.inventory.add_host(host=hostname, group="sast1_datacenter")
-            elif site.lower().startswith("asbc1") or site.lower().startswith("asgi1"):
-                self.inventory.add_host(host=hostname, group="asbc1_datacenter")
+                if regexp.search(hostname):
+                    self.inventory.add_host(host=hostname, group="test")
 
-            self.inventory.add_host(host=hostname, group=group)
-            self.inventory.add_host(host=hostname, group="corp")
+                if site.startswith("rkat1"):
+                    self.inventory.add_host(host=hostname, group="rkat1_datacenter")
+                elif site.startswith("sast1"):
+                    self.inventory.add_host(host=hostname, group="sast1_datacenter")
+                elif site.startswith("asbc1") or site.startswith("asgi1"):
+                    self.inventory.add_host(host=hostname, group="asbc1_datacenter")
 
-            self.inventory.set_variable(hostname, "subtype_name", device["subTypeName"])
-            self.inventory.set_variable(hostname, "model_number", device["model"])
-            self.inventory.set_variable(hostname, "ansible_host", device["mgmtIP"])
-            self.inventory.set_variable(hostname, "serial_number", device["sn"])
+                self.inventory.add_host(host=hostname, group=site_group)
+                self.inventory.add_host(host=hostname, group="corp")
+
+                self.inventory.set_variable(
+                    hostname, "subtype_name", device["subTypeName"]
+                )
+                self.inventory.set_variable(hostname, "model_number", device["model"])
+                self.inventory.set_variable(hostname, "ansible_host", device["mgmtIP"])
+                self.inventory.set_variable(hostname, "serial_number", device["sn"])
 
     def parse(self, inventory, loader, path, cache):
         """Return dynamic inventory from source"""
