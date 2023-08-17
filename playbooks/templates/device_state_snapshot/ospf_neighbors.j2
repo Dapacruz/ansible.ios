@@ -1,0 +1,11 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+{% set ospf_neighbors_lines = ospf_neighbors.stdout_lines[0] %}
+{% if ospf_neighbors_lines %}
+Neighbor ID, Pri, State, Dead Time, Address, Interface
+{% for line in ospf_neighbors_lines[1:] %}
+{{ line | trim | regex_replace("\s\s+", ", ") }}
+{% endfor %}
+{% else %}
+Neighbor ID, Pri, State, Dead Time, Address, Interface
+No ARP entries found.
+{% endif %}

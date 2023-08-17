@@ -1,0 +1,7 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+{% if bgp_neighbors.stdout_lines[0][0] %}
+show ip bgp summary
+{% for line in bgp_neighbors.stdout_lines[0] %}
+{{ line | replace(",", ";") }}
+{% endfor %}
+{% endif %}

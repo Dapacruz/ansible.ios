@@ -1,0 +1,9 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+{% if route_table.stdout_lines[0][0] %}
+show ip route
+{% for line in route_table.stdout_lines[0] %}
+{{ line | replace(",", ";") }}
+{% endfor %}
+{% else %}
+No route entries found.
+{% endif %}

@@ -1,0 +1,11 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+{% set arp_cache_lines = arp_cache.stdout_lines[0] %}
+{% if arp_cache_lines %}
+Protocol, Address, Age (min), Hardware Addr, Type, Interface
+{% for line in arp_cache_lines[1:] %}
+{{ line | trim | regex_replace("\s\s+", ", ") }}
+{% endfor %}
+{% else %}
+Protocol, Address, Age (min), Hardware Addr, Type, Interface
+No ARP entries found.
+{% endif %}

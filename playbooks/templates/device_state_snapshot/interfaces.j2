@@ -1,0 +1,11 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+{% set interface_lines = ip_interfaces.stdout_lines[0] %}
+{% if interface_lines %}
+Interface, IP-Address, OK?, Method, Status, Protocol
+{% for line in interface_lines[1:] %}
+{{ line | trim | regex_replace("\s", "  ") | regex_replace("(administratively\s)\s([^ ]+\s)", "\\1\\2 ") | regex_replace("\s\s+", ", ") }}
+{% endfor %}
+{% else %}
+Interface, IP-Address, OK?, Method, Status, Protocol
+No interfaces found.
+{% endif %}
