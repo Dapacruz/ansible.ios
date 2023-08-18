@@ -19,24 +19,27 @@
       ansible.builtin.set_fact:
         date: "{{ date_output.stdout }}"
 
+    - name: Set Output Directory Fact
+      ansible.builtin.set_fact:
+        output_directory: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}"
+
     - name: Set Facts
       ansible.builtin.set_fact:
-        device_state_snapshot_main: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_{{ date }}.txt"
-        device_state_snapshot_running_config: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_running_config_{{ date }}.txt"
-        device_state_snapshot_running_config_csv: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_running_config_{{ date }}.csv"
-        device_state_snapshot_version: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_version_{{ date }}.csv"
-        device_state_snapshot_interfaces: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_interfaces_{{ date }}.csv"
-        device_state_snapshot_arp_cache: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_arp_cache_{{ date }}.csv"
-        device_state_snapshot_route_table: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_route_table_{{ date }}.csv"
-        device_state_snapshot_ospf_neighbors: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_ospf_neighbors_{{ date }}.csv"
-        device_state_snapshot_bgp_neighbors: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_bgp_neighbors_{{ date }}.csv"
+        device_state_snapshot_main: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_{{ date }}.txt"
+        device_state_snapshot_running_config: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_running_config_{{ date }}.txt"
+        device_state_snapshot_running_config_csv: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_running_config_{{ date }}.csv"
+        device_state_snapshot_version: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_version_{{ date }}.csv"
+        device_state_snapshot_interfaces: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_interfaces_{{ date }}.csv"
+        device_state_snapshot_arp_cache: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_arp_cache_{{ date }}.csv"
+        device_state_snapshot_route_table: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_route_table_{{ date }}.csv"
+        device_state_snapshot_ospf_neighbors: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_ospf_neighbors_{{ date }}.csv"
+        device_state_snapshot_bgp_neighbors: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_bgp_neighbors_{{ date }}.csv"
 
     - name: Ensure Output Directory Exists
       ansible.builtin.file:
         state: directory
-        path: "{{ playbook_dir }}/output"
+        path: "{{ output_directory }}"
       delegate_to: localhost
-      run_once: true
 
   tasks:
     - name: show running-config
@@ -139,14 +142,14 @@
           from pathlib import Path
           import pandas as pd
 
-          p = Path("{{ playbook_dir }}/output")
-          with pd.ExcelWriter("{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_{{ date }}.xlsx", engine="xlsxwriter") as writer:
+          p = Path("{{ output_directory }}")
+          with pd.ExcelWriter("{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_{{ date }}.xlsx", engine="xlsxwriter") as writer:
               wb = writer.book
               cell_format = wb.add_format()
               cell_format.set_font_name("Consolas")
               for f in sorted(p.glob("*.csv")):
                   df = pd.read_csv(f)
-                  sheet_name = str(f).replace("{{ playbook_dir }}/output/{{ inventory_hostname_short }}_device_state_snapshot_", "").replace("_{{ date }}.csv", "")
+                  sheet_name = str(f).replace("{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_", "").replace("_{{ date }}.csv", "")
                   df.to_excel(writer, sheet_name=sheet_name, index=False)
                   worksheet = writer.sheets[sheet_name]
                   # Get the dimensions of the dataframe
@@ -163,7 +166,7 @@
 
     - name: Find Files to Attach
       ansible.builtin.find:
-        paths: "{{ playbook_dir }}/output"
+        paths: "{{ output_directory }}"
         patterns:
           - "*.xlsx"
           - "*.txt"

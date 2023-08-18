@@ -4,4 +4,7 @@ show ip bgp summary
 {% for line in bgp_neighbors.stdout_lines[0] %}
 {{ line | replace(",", ";") }}
 {% endfor %}
+{% else %}
+show ip bgp summary
+No BGP neighbors found.
 {% endif %}
