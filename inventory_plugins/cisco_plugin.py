@@ -114,9 +114,11 @@ class InventoryModule(BaseInventoryPlugin):
                 ]:
                     self.inventory.add_host(host=hostname, group="ios")
                     self.inventory.set_variable(hostname, "software", "IOS")
+                    self.inventory.set_variable(hostname, "ansible_network_os", "ios")
                 else:
                     self.inventory.add_host(host=hostname, group="nxos")
                     self.inventory.set_variable(hostname, "software", "NX-OS")
+                    self.inventory.set_variable(hostname, "ansible_network_os", "nxos")
 
                 if regexp.search(hostname):
                     self.inventory.add_host(host=hostname, group="test")
