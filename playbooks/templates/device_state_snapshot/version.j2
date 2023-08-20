@@ -1,6 +1,6 @@
 #jinja2: lstrip_blocks: True, trim_blocks: True
-{% if version.stdout_lines[0][0] %}
 show version
+{% if version.stdout_lines[0][0] %}
 {% for line in version.stdout_lines[0] %}
 {{ line | replace(",", ";") }}
 {% endfor %}

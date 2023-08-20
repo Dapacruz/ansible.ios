@@ -1,0 +1,10 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+Neighbor ID, Pri, State, Up Time, Address, Interface
+{% set ospf_neighbors_lines = ospf_neighbors.stdout_lines[0] %}
+{% if ospf_neighbors_lines[0] %}
+{% for line in ospf_neighbors_lines[3:] %}
+{{ line | trim | regex_replace("\s+", ", ") }}
+{% endfor %}
+{% else %}
+No OSPF neighbors found.
+{% endif %}

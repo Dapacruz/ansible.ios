@@ -1,6 +1,6 @@
 #jinja2: lstrip_blocks: True, trim_blocks: True
-{% if running_config.stdout_lines[0][0] %}
 show running-config
+{% if running_config.stdout_lines[0][0] %}
 {% for line in running_config.stdout_lines[0] %}
 {{ line | replace(",", ";") }}
 {% endfor %}

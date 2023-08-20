@@ -1,0 +1,60 @@
+---
+- name: Get NX-OS Facts
+  cisco.nxos.nxos_facts:
+    gather_subset: min
+    gather_network_resources: bgp_global
+
+- name: show running-config
+  cisco.nxos.nxos_command:
+    commands: show running-config
+  register: running_config
+  when: save_config | bool
+
+- name: show version
+  cisco.nxos.nxos_command:
+    commands: show version
+  register: version
+
+- name: show ip interface brief
+  cisco.nxos.nxos_command:
+    commands: show ip interface brief
+  register: ip_interfaces
+
+- name: show ip arp
+  cisco.nxos.nxos_command:
+    commands: show ip arp
+  register: arp_cache
+
+- name: show ip route
+  cisco.nxos.nxos_command:
+    commands: show ip route
+  register: route_table
+
+- name: show ip ospf neighbor
+  cisco.nxos.nxos_command:
+    commands: show ip ospf neighbor
+  register: ospf_neighbors
+
+- name: show ip bgp summary
+  cisco.nxos.nxos_command:
+    commands: show ip bgp summary
+  register: bgp_neighbors
+  when: ansible_network_resources.bgp_global
+
+- name: Render Interface Template
+  ansible.builtin.template:
+    src: templates/device_state_snapshot/interfaces_nxos.j2
+    dest: "{{ device_state_snapshot_interfaces }}"
+  delegate_to: localhost
+
+- name: Render ARP Cache Template
+  ansible.builtin.template:
+    src: templates/device_state_snapshot/arp_cache_nxos.j2
+    dest: "{{ device_state_snapshot_arp_cache }}"
+  delegate_to: localhost
+
+- name: Render OSPF Neighbors Template
+  ansible.builtin.template:
+    src: templates/device_state_snapshot/ospf_neighbors_nxos.j2
+    dest: "{{ device_state_snapshot_ospf_neighbors }}"
+  delegate_to: localhost

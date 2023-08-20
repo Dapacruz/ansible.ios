@@ -32,7 +32,7 @@ No OSPF neighbors found.
 
 ##### show ip bgp summary ##############################
 
-{% if bgp_neighbors.stdout_lines[0][0] %}
+{% if bgp_neighbors.skip_reason is not defined and bgp_neighbors.stdout_lines[0][0] %}
 {{ bgp_neighbors.stdout_lines[0] | join("\n") }}
 {% else %}
 No BGP neighbors found.

@@ -1,0 +1,11 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+Address, Age, MAC Address, Interface, Flags
+{% set regex = "^\d{1,3}\..+" %}
+{% set arp_cache_lines = arp_cache.stdout_lines[0] | map("regex_search", regex) | select("string") | list %}
+{% if arp_cache_lines %}
+{% for line in arp_cache_lines %}
+{{ line | trim | regex_replace("\s\s+", ", ") }}
+{% endfor %}
+{% else %}
+No ARP entries found.
+{% endif %}

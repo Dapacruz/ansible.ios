@@ -5,10 +5,6 @@
   gather_facts: false
 
   pre_tasks:
-    - name: Get IOS Facts
-      cisco.ios.ios_facts:
-        gather_subset: min
-
     - name: Get Current Date/Time
       ansible.builtin.command:
         cmd: env TZ="America/Los_Angeles" date +"%Y%m%dT%H%m%S"
@@ -35,48 +31,20 @@
         device_state_snapshot_ospf_neighbors: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_ospf_neighbors_{{ date }}.csv"
         device_state_snapshot_bgp_neighbors: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_bgp_neighbors_{{ date }}.csv"
 
-    - name: Ensure Output Directory Exists
+    - name: Create Output Directory
       ansible.builtin.file:
         state: directory
         path: "{{ output_directory }}"
       delegate_to: localhost
 
   tasks:
-    - name: show running-config
-      cisco.ios.ios_command:
-        commands: show running-config
-      register: running_config
-      when: save_config | bool
+    - name: Include IOS Tasks
+      include_tasks: tasks/get_device_state_snapshot_ios.yml
+      when: ansible_network_os == "ios"
 
-    - name: show version
-      ios_command:
-        commands: show version
-      register: version
-
-    - name: show ip interface brief
-      ios_command:
-        commands: show ip interface brief
-      register: ip_interfaces
-
-    - name: show ip arp
-      ios_command:
-        commands: show ip arp
-      register: arp_cache
-
-    - name: show ip route
-      ios_command:
-        commands: show ip route
-      register: route_table
-
-    - name: show ip ospf neighbor
-      ios_command:
-        commands: show ip ospf neighbor
-      register: ospf_neighbors
-
-    - name: show ip bgp summary
-      ios_command:
-        commands: show ip bgp summary
-      register: bgp_neighbors
+    - name: Include NX-OS Tasks
+      include_tasks: tasks/get_device_state_snapshot_nxos.yml
+      when: ansible_network_os == "nxos"
 
   post_tasks:
     - name: Render Main Template
@@ -105,28 +73,10 @@
         dest: "{{ device_state_snapshot_version }}"
       delegate_to: localhost
 
-    - name: Render Interface Template
-      ansible.builtin.template:
-        src: templates/device_state_snapshot/interfaces.j2
-        dest: "{{ device_state_snapshot_interfaces }}"
-      delegate_to: localhost
-
-    - name: Render ARP Cache Template
-      ansible.builtin.template:
-        src: templates/device_state_snapshot/arp_cache.j2
-        dest: "{{ device_state_snapshot_arp_cache }}"
-      delegate_to: localhost
-
     - name: Render Route Table Template
       ansible.builtin.template:
         src: templates/device_state_snapshot/route_table.j2
         dest: "{{ device_state_snapshot_route_table }}"
-      delegate_to: localhost
-
-    - name: Render OSPF Neighbors Template
-      ansible.builtin.template:
-        src: templates/device_state_snapshot/ospf_neighbors.j2
-        dest: "{{ device_state_snapshot_ospf_neighbors }}"
       delegate_to: localhost
 
     - name: Render BGP Neighbors Template
