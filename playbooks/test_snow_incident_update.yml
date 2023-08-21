@@ -1,0 +1,68 @@
+---
+- name: Test ServiceNow Incident Update
+  hosts: all
+  connection: local
+  gather_facts: false
+
+  pre_tasks:
+    - name: Get Current Date/Time
+      ansible.builtin.command:
+        cmd: env TZ="America/Los_Angeles" date +"%Y%m%dT%H%m%S"
+      changed_when: false
+      register: date_output
+
+    - name: Set Date Fact
+      ansible.builtin.set_fact:
+        date: "{{ date_output.stdout }}"
+
+    - name: Set Output Directory Fact
+      ansible.builtin.set_fact:
+        output_directory: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}"
+
+    - name: Set Facts
+      ansible.builtin.set_fact:
+        device_state_snapshot_running_config: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_running_config_{{ date }}.txt"
+
+    - name: Create Output Directory
+      ansible.builtin.file:
+        state: directory
+        path: "{{ output_directory }}"
+      delegate_to: localhost
+
+  tasks:
+    - name: show version
+      cisco.ios.ios_command:
+        commands: show version
+      register: version
+
+    - name: show running-config
+      cisco.ios.ios_command:
+        commands: show running-config
+      register: running_config
+
+  post_tasks:
+    - name: Render Running Configuration Template
+      ansible.builtin.template:
+        src: templates/device_state_snapshot/running_config.j2
+        dest: "{{ device_state_snapshot_running_config }}"
+      delegate_to: localhost
+
+    - name: Attach Device State Snapshot to Incident
+      servicenow.itsm.incident:
+        instance:
+          host: "{{ snow_instance }}"
+          username: "{{ snow_username }}"
+          password: "{{ snow_password }}"
+        number: "{{ snow_incident }}"
+        attachments:
+          - path: "{{ device_state_snapshot_running_config }}"
+
+    - name: Update Incident Work Notes
+      servicenow.itsm.incident:
+        instance:
+          host: "{{ snow_instance }}"
+          username: "{{ snow_username }}"
+          password: "{{ snow_password }}"
+        number: "{{ snow_incident }}"
+        other:
+          work_notes: "{{ version.stdout_lines[0] | join('\n') }}"
