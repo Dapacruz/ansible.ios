@@ -4,9 +4,9 @@
 
   tasks:
     - name: Execute Operational Command
-      ios_command:
+      cisco.ios.ios_command:
         commands: "{{ command }}"
       register: result
 
-    - debug:
+    - ansible.builtin.debug:
         var: result.stdout_lines[0]
