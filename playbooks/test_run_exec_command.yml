@@ -8,5 +8,5 @@
         commands: "{{ command }}"
       register: result
 
-    - debug:
+    - ansible.builtin.debug:
         var: result.stdout_lines[0]
