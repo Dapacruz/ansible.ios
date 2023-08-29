@@ -108,3 +108,4 @@
         number: "{{ snow_incident }}"
         attachments:
           - path: "{{ device_state_snapshot_xlsx }}"
+            type: officedocument.spreadsheetml.sheet
