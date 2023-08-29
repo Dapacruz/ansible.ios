@@ -51,6 +51,7 @@
         src: templates/device_state_snapshot/running_config_csv.j2
         dest: "{{ device_state_snapshot_running_config }}"
       delegate_to: localhost
+      when: save_config | bool
 
     - name: Render Version Template
       ansible.builtin.template:
