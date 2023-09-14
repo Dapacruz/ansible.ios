@@ -1,6 +1,6 @@
 ---
 - name: Attach Device State Snapshot to ServiceNow Incident
-  hosts: "{{ configuration_item }}"
+  hosts: "{{ configuration_item | lower }}"
   connection: local
   gather_facts: false
 
