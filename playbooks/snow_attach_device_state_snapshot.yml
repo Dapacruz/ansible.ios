@@ -1,5 +1,5 @@
 ---
-- name: Get Device State Snapshot
+- name: Attach Device State Snapshot to ServiceNow Incident
   hosts: all
   connection: local
   gather_facts: false
