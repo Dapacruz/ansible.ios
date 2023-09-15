@@ -1,6 +1,6 @@
 ---
 - name: Test ServiceNow Incident Update
-  hosts: all
+  hosts: "{{ configuration_item | lower }}"
   connection: local
   gather_facts: false
 

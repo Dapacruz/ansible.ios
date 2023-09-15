@@ -1,5 +1,5 @@
 ---
-- hosts: switches
+- hosts: "{{ hosts_limit | lower }}"
   gather_facts: false
 
   tasks:

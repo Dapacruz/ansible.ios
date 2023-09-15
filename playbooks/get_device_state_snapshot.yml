@@ -1,6 +1,6 @@
 ---
 - name: Get Device State Snapshot
-  hosts: all
+  hosts: "{{ hosts_limit | lower }}"
   connection: local
   gather_facts: false
 
