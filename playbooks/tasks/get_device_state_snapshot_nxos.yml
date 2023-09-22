@@ -44,17 +44,17 @@
 - name: Render Interface Template
   ansible.builtin.template:
     src: templates/device_state_snapshot/interfaces_nxos.j2
-    dest: "{{ device_state_snapshot_interfaces }}"
+    dest: "{{ output_dir }}/interfaces.csv"
   delegate_to: localhost
 
 - name: Render ARP Cache Template
   ansible.builtin.template:
     src: templates/device_state_snapshot/arp_cache_nxos.j2
-    dest: "{{ device_state_snapshot_arp_cache }}"
+    dest: "{{ output_dir }}/arp_cache.csv"
   delegate_to: localhost
 
 - name: Render OSPF Neighbors Template
   ansible.builtin.template:
     src: templates/device_state_snapshot/ospf_neighbors_nxos.j2
-    dest: "{{ device_state_snapshot_ospf_neighbors }}"
+    dest: "{{ output_dir }}/ospf_neighbors.csv"
   delegate_to: localhost

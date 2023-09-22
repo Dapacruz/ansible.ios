@@ -3,38 +3,8 @@
   hosts: "{{ configuration_item | lower }}"
   connection: local
   gather_facts: false
-
-  pre_tasks:
-    - name: Get Current Date/Time
-      ansible.builtin.command:
-        cmd: env TZ="America/Los_Angeles" date +"%Y%m%dT%H%m%S"
-      changed_when: false
-      register: date_output
-
-    - name: Set Date Fact
-      ansible.builtin.set_fact:
-        date: "{{ date_output.stdout }}"
-
-    - name: Set Output Directory Fact
-      ansible.builtin.set_fact:
-        output_directory: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}"
-
-    - name: Set Facts
-      ansible.builtin.set_fact:
-        device_state_snapshot_running_config: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_running_config_{{ date }}.csv"
-        device_state_snapshot_version: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_version_{{ date }}.csv"
-        device_state_snapshot_interfaces: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_interfaces_{{ date }}.csv"
-        device_state_snapshot_arp_cache: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_arp_cache_{{ date }}.csv"
-        device_state_snapshot_route_table: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_route_table_{{ date }}.csv"
-        device_state_snapshot_ospf_neighbors: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_ospf_neighbors_{{ date }}.csv"
-        device_state_snapshot_bgp_neighbors: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_bgp_neighbors_{{ date }}.csv"
-        device_state_snapshot_xlsx: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_{{ date }}.xlsx"
-
-    - name: Create Output Directory
-      ansible.builtin.file:
-        state: directory
-        path: "{{ output_directory }}"
-      delegate_to: localhost
+  roles:
+    - output
 
   tasks:
     - name: Include IOS Tasks
@@ -49,26 +19,26 @@
     - name: Render Running Configuration CSV Template
       ansible.builtin.template:
         src: templates/device_state_snapshot/running_config_csv.j2
-        dest: "{{ device_state_snapshot_running_config }}"
+        dest: "{{ output_dir }}/running_config.csv"
       delegate_to: localhost
       when: save_config | bool
 
     - name: Render Version Template
       ansible.builtin.template:
         src: templates/device_state_snapshot/version.j2
-        dest: "{{ device_state_snapshot_version }}"
+        dest: "{{ output_dir }}/version.csv"
       delegate_to: localhost
 
     - name: Render Route Table Template
       ansible.builtin.template:
         src: templates/device_state_snapshot/route_table.j2
-        dest: "{{ device_state_snapshot_route_table }}"
+        dest: "{{ output_dir }}/route_table.csv"
       delegate_to: localhost
 
     - name: Render BGP Neighbors Template
       ansible.builtin.template:
         src: templates/device_state_snapshot/bgp_neighbors.j2
-        dest: "{{ device_state_snapshot_bgp_neighbors }}"
+        dest: "{{ output_dir }}/bgp_neighbors.csv"
       delegate_to: localhost
 
     - name: Merge CSV Files into an Excel Workbook
@@ -78,14 +48,14 @@
           from pathlib import Path
           import pandas as pd
 
-          p = Path("{{ output_directory }}")
-          with pd.ExcelWriter("{{ device_state_snapshot_xlsx }}", engine="xlsxwriter") as writer:
+          p = Path("{{ output_dir }}")
+          with pd.ExcelWriter("{{ output_dir }}/{{ inventory_hostname_short }}_device_state_snapshot_{{ timestamp }}.xlsx", engine="xlsxwriter") as writer:
               wb = writer.book
               cell_format = wb.add_format()
               cell_format.set_font_name("Consolas")
               for f in sorted(p.glob("*.csv")):
                   df = pd.read_csv(f)
-                  sheet_name = str(f).replace("{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_", "").replace("_{{ date }}.csv", "")
+                  sheet_name = str(f).replace("{{ output_dir }}/", "").replace(".csv", "")
                   df.to_excel(writer, sheet_name=sheet_name, index=False)
                   worksheet = writer.sheets[sheet_name]
                   # Get the dimensions of the dataframe
@@ -108,5 +78,5 @@
           password: "{{ snow_password }}"
         number: "{{ snow_incident }}"
         attachments:
-          - path: "{{ device_state_snapshot_xlsx }}"
+          - path: "{{ output_dir }}/{{ inventory_hostname_short }}_device_state_snapshot_{{ timestamp }}.xlsx"
             type: officedocument.spreadsheetml.sheet
