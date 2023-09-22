@@ -3,31 +3,8 @@
   hosts: "{{ configuration_item | lower }}"
   connection: local
   gather_facts: false
-
-  pre_tasks:
-    - name: Get Current Date/Time
-      ansible.builtin.command:
-        cmd: env TZ="America/Los_Angeles" date +"%Y%m%dT%H%m%S"
-      changed_when: false
-      register: date_output
-
-    - name: Set Date Fact
-      ansible.builtin.set_fact:
-        date: "{{ date_output.stdout }}"
-
-    - name: Set Output Directory Fact
-      ansible.builtin.set_fact:
-        output_directory: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}"
-
-    - name: Set Facts
-      ansible.builtin.set_fact:
-        device_state_snapshot_running_config: "{{ output_directory }}/{{ inventory_hostname_short }}_device_state_snapshot_running_config_{{ date }}.txt"
-
-    - name: Create Output Directory
-      ansible.builtin.file:
-        state: directory
-        path: "{{ output_directory }}"
-      delegate_to: localhost
+  roles:
+    - output
 
   tasks:
     - name: show version
@@ -44,7 +21,7 @@
     - name: Render Running Configuration Template
       ansible.builtin.template:
         src: templates/device_state_snapshot/running_config.j2
-        dest: "{{ device_state_snapshot_running_config }}"
+        dest: "{{ output_dir }}/{{ inventory_hostname_short }}_device_state_snapshot_running_config_{{ timestamp }}.txt"
       delegate_to: localhost
 
     - name: Attach Device State Snapshot to Incident
@@ -55,7 +32,7 @@
           password: "{{ snow_password }}"
         number: "{{ snow_incident }}"
         attachments:
-          - path: "{{ device_state_snapshot_running_config }}"
+          - path: "{{ output_dir }}/{{ inventory_hostname_short }}_device_state_snapshot_running_config_{{ timestamp }}.txt"
 
     - name: Update Incident Work Notes
       servicenow.itsm.incident:
