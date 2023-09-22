@@ -83,6 +83,14 @@
                       max_len = max((series.astype(str).map(len).max(),len(str(series.name)))) + 3
                       worksheet.set_column(idx, idx, max_len, cell_format)
 
+    - name: Find Files to Attach
+      ansible.builtin.find:
+        paths: "{{ output_dir }}"
+        patterns:
+          - "*.xlsx"
+          - "*.txt"
+      register: files
+
     - name: Mail Report
       community.general.mail:
         host: "{{ smtp_server }}"
@@ -92,8 +100,6 @@
         from: "{{ smtp_from }}"
         to:
           - "{{ smtp_to }}"
-        attach:
-          - "{{ output_dir }}/{{ inventory_hostname_short }}_device_state_snapshot_{{ timestamp }}.txt"
-          - "{{ output_dir }}/{{ inventory_hostname_short }}_device_state_snapshot_{{ timestamp }}.xlsx"
+        attach: "{{ files.files | json_query('[].path') }}"
       ignore_errors: true
       delegate_to: localhost
