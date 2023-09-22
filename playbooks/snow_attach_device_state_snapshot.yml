@@ -8,11 +8,11 @@
 
   tasks:
     - name: Include IOS Tasks
-      include_tasks: tasks/get_device_state_snapshot_ios.yml
+      include_tasks: tasks/get_device_state_snapshot/ios.yml
       when: ansible_network_os == "ios"
 
     - name: Include NX-OS Tasks
-      include_tasks: tasks/get_device_state_snapshot_nxos.yml
+      include_tasks: tasks/get_device_state_snapshot/nxos.yml
       when: ansible_network_os == "nxos"
 
   post_tasks:
