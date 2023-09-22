@@ -1,0 +1,27 @@
+---
+# tasks file for common
+- name: Get Current Date/Time
+  ansible.builtin.command:
+    cmd: env TZ="America/Los_Angeles" date +"%Y%m%dT%H%m%S"
+  changed_when: false
+  register: date_output
+
+- name: Set Timestamp Fact
+  ansible.builtin.set_fact:
+    timestamp: "{{ date_output.stdout }}"
+
+- name: Set Output Directory Fact
+  ansible.builtin.set_fact:
+    output_dir: "{{playbook_dir}}/output/{{ inventory_hostname_short }}"
+
+- name: Remove Output Directory
+  ansible.builtin.file:
+    state: absent
+    path: "{{ output_dir }}"
+  delegate_to: localhost
+
+- name: Create Output Directory
+  ansible.builtin.file:
+    state: directory
+    path: "{{ output_dir }}"
+  delegate_to: localhost

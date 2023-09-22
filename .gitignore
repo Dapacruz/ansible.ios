@@ -3,4 +3,4 @@
 **/__pycache__/
 
 !**/.gitkeep
-
+!playbooks/roles/output
