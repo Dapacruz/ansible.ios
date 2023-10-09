@@ -11,6 +11,7 @@
       {{ store_switch }}
   register: name_server
   changed_when: false
+  no_log: true
 
 - name: Store Switch | Fetching domain lookup configuration
   ansible.builtin.command: >
@@ -24,6 +25,7 @@
       {{ store_switch }}
   register: domain_lookup
   changed_when: false
+  no_log: true
 
 - name: Store Switch | Enabling DNS lookups
   ansible.builtin.command: >
@@ -40,6 +42,7 @@
       --command "copy running-config startup-config"
       {{ store_switch }}
   when: name_server.stdout_lines[5] == "" or domain_lookup.stdout_lines[5] == "no ip domain-lookup"
+  no_log: true
 
 - name: Store Switch | Fetching switch uptime
   ansible.builtin.command: >
@@ -53,6 +56,7 @@
       {{ store_switch }}
   register: store_switch_uptime
   changed_when: false
+  no_log: true
 
 - name: Store Switch | Tracing route to the internet
   ansible.builtin.command: >
@@ -66,6 +70,7 @@
       {{ store_switch }}
   register: store_internet_egress
   changed_when: false
+  no_log: true
 
 - name: Store Switch | Testing DNS resolution
   ansible.builtin.command: >
@@ -79,6 +84,7 @@
       {{ store_switch }}
   register: store_switch_dns_test
   changed_when: false
+  no_log: true
 
 - name: Store Switch | Setting verifone_ip fact
   ansible.builtin.set_fact:
@@ -96,6 +102,7 @@
       {{ store_switch }}
   register: store_switch_connect_ws_site
   changed_when: false
+  no_log: true
 
 - name: Store Switch | Connecting to Store Wide Web site
   ansible.builtin.command: >
@@ -109,6 +116,7 @@
       {{ store_switch }}
   register: store_switch_connect_storesweb
   changed_when: false
+  no_log: true
 
 - name: Store Switch | Connecting to Verifone API
   ansible.builtin.command: >
@@ -122,3 +130,4 @@
       {{ store_switch }}
   register: store_switch_connect_verifone
   changed_when: false
+  no_log: true

@@ -11,6 +11,7 @@
       {{ rocklin_mpls_router }}
   register: store_subnet_lookup
   changed_when: false
+  no_log: true
 
 - name: Rocklin MPLS Router | Fetching store broadband VPN tunnel status
   ansible.builtin.command: >
@@ -25,6 +26,7 @@
   register: store_bb_tunnel_status
   changed_when: false
   when: not sdwan_store
+  no_log: true
 
 - name: Rocklin MPLS Router | Fetching store broadband VPN tunnel down count
   ansible.builtin.command: >
@@ -39,6 +41,7 @@
   register: store_vpn_down_count
   changed_when: false
   when: not sdwan_store
+  no_log: true
 
 - name: Rocklin MPLS Router | Pinging store router
   ansible.builtin.command: >
@@ -52,6 +55,7 @@
       {{ rocklin_mpls_router }}
   register: store_router_ping
   changed_when: false
+  no_log: true
 
 - name: Rocklin MPLS Router | Pinging store switch
   ansible.builtin.command: >
@@ -65,3 +69,4 @@
       {{ rocklin_mpls_router }}
   register: store_switch_ping
   changed_when: false
+  no_log: true
