@@ -55,7 +55,7 @@
       delegate_to: localhost
 
     - name: Merge CSV Files into an Excel Workbook
-      command: /usr/bin/python3
+      ansible.builtin.command: /usr/bin/python3
       args:
         stdin: |
           from pathlib import Path

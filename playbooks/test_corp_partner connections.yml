@@ -1,0 +1,46 @@
+---
+# - name: Get Subnet Host Range
+#   ansible.builtin.command: /usr/bin/python3
+#   args:
+#     stdin: |
+#       from ipaddress import ip_network
+#       subnet = ip_network("{{ store_subnet }}/{{ store_subnet_mask }}")
+#       first_ip_split = str(subnet[1]).split(".")
+#       last_ip_split = str(subnet[-2]).split(".")
+#       iteration = 1
+#       subnet_host_range_regex = ""
+#       for ip1, ip2 in zip(first_ip_split, last_ip_split):
+#           if ip1 == ip2:
+#               subnet_host_range_regex += f"{ip1}"
+#           else:
+#               subnet_host_range_regex += f"[{ip1}-{ip2}]"
+#           if iteration < 4:
+#               subnet_host_range_regex += "."
+#           iteration += 1
+#       print(subnet_host_range_regex)
+#   register: subnet_host_range_regex
+
+# - name: Set Fact
+#   ansible.builtin.set_fact:
+#     subnet_host_range_regex: "{{ subnet_host_range_regex.stdout }}"
+
+- name: Corp Partner Connections
+  ansible.builtin.shell: "{{ playbook_dir }}/library/go/panos-cli firewall run commands --no-config --insecure --timeout 60 --user {{ panos_user }} --password {{ panos_ssh_pass }} --command 'show session all filter state active destination {{ service.ip }} count yes' {{ firewalls.sast1_corp_edge }} {{ firewalls.asbc1_corp_edge }} {{ firewalls.rkat1_corp_edge }} | egrep 'fw0|^Number'"
+  register: results
+  changed_when: false
+  delegate_to: localhost
+  loop: "{{ store_connections }}"
+  loop_control:
+    loop_var: service
+
+
+
+##### Store Access to External Services ##############################
+
+{% for item in results.results %}
+{{ item.service.name }} {{ item.service.fqdn }} ({{ item.service.ip }}) active firewall sessions:
+{{ item.stdout_lines[0] | regex_replace("[^\x20-\x7e]", "") | regex_replace("\s?\*{3}\s?", "") }}: {{ item.stdout_lines[1] | regex_replace("[^\x20-\x7e]", "") | regex_replace("[^0-9]", "") }}
+{{ item.stdout_lines[2] | regex_replace("[^\x20-\x7e]", "") | regex_replace("\s?\*{3}\s?", "") }}: {{ item.stdout_lines[3] | regex_replace("[^\x20-\x7e]", "") | regex_replace("[^0-9]", "") }}
+{{ item.stdout_lines[4] | regex_replace("[^\x20-\x7e]", "") | regex_replace("\s?\*{3}\s?", "") }}: {{ item.stdout_lines[5] | regex_replace("[^\x20-\x7e]", "") | regex_replace("[^0-9]", "") }}
+
+{% endfor %}

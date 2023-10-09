@@ -1,0 +1,73 @@
+---
+- name: ServiceNow | Fetching incident
+  ansible.builtin.uri:
+    url: "{{ snow_instance }}/api/now/v1/table/incident?sysparm_display_value=true&sysparm_fields=u_store&sysparm_query=number={{ snow_incident | upper }}"
+    user: "{{ snow_username }}"
+    password: "{{ snow_password }}"
+    method: GET
+    force_basic_auth: true
+  register: incident_details
+
+- name: ServiceNow | Setting store_number fact
+  ansible.builtin.set_fact:
+    store_number: "{{ incident_details.json.result[0].u_store.display_value }}"
+  when: incident_details.json.result[0].u_store
+
+- name: ServiceNow | Fetching store details
+  ansible.builtin.uri:
+    url: "{{ snow_instance }}/api/now/v1/table/u_store_information_1?sysparm_display_value=true&sysparm_fields=u_concept,u_sdwan,u_poc_wifi&sysparm_query=u_store_statusANYTHING^u_store_numberSTARTSWITH{{ store_number }}"
+    user: "{{ snow_username }}"
+    password: "{{ snow_password }}"
+    method: GET
+    force_basic_auth: true
+  register: store_details
+
+- name: ServiceNow | Fetching store network details
+  ansible.builtin.uri:
+    url: "{{ snow_instance }}/api/now/v1/table/u_network?sysparm_display_value=true&sysparm_fields=u_router,u_switch_1,u_ip_network,u_subnet_mask,u_bb_tunnel1&sysparm_query=u_store_statusANYTHING^u_store_numberSTARTSWITH{{ store_number }}"
+    user: "{{ snow_username }}"
+    password: "{{ snow_password }}"
+    method: GET
+    force_basic_auth: true
+  register: store_network_details
+
+- name: ServiceNow | Setting facts
+  ansible.builtin.set_fact:
+    store_concept: "{{ store_details.json.result[0].u_concept }}"
+    sdwan_store: "{{ store_details.json.result[0].u_sdwan }}"
+    store_switch: "{{ store_network_details.json.result[0].u_switch_1 }}"
+    store_router: "{{ store_network_details.json.result[0].u_router }}"
+    store_subnet: "{{ store_network_details.json.result[0].u_ip_network }}"
+    store_subnet_mask: "{{ store_network_details.json.result[0].u_subnet_mask }}"
+    store_bb_tun1: "{{ store_network_details.json.result[0].u_bb_tunnel1 }}"
+    mist_store: "{{ store_details.json.result[0].u_poc_wifi }}"
+
+- name: ServiceNow | Generating POS subnet host range
+  ansible.builtin.command: /usr/bin/python3
+  args:
+    stdin: |
+      from ipaddress import ip_network
+      subnet = ip_network("{{ store_subnet }}/{{ store_subnet_mask }}")
+      first_ip_split = str(subnet[1]).split(".")
+      last_ip_split = str(subnet[-2]).split(".")
+      iteration = 1
+      subnet_host_range_regex = ""
+      for ip1, ip2 in zip(first_ip_split, last_ip_split):
+          if ip1 == ip2:
+              subnet_host_range_regex += f"{ip1}"
+          else:
+              subnet_host_range_regex += f"[{ip1}-{ip2}]"
+          if iteration < 4:
+              subnet_host_range_regex += "."
+          iteration += 1
+      print(subnet_host_range_regex)
+  changed_when: false
+  register: pos_subnet_host_range_regex
+
+- name: ServiceNow | Setting pos_subnet_host_range_regex fact
+  ansible.builtin.set_fact:
+    pos_subnet_host_range_regex: "{{ pos_subnet_host_range_regex.stdout }}"
+
+- name: ServiceNow | Setting pin_pad_subnet_host_range_regex fact
+  ansible.builtin.set_fact:
+    pin_pad_subnet_host_range_regex: "{{ pos_subnet_host_range_regex | regex_replace('^(\\d{3})\\.26\\.', '\\1.28.') }}"

@@ -8,11 +8,11 @@
 
   tasks:
     - name: Include IOS Tasks
-      include_tasks: tasks/get_device_state_snapshot/ios.yml
+      ansible.builtin.include_tasks: tasks/get_device_state_snapshot/ios.yml
       when: ansible_network_os == "ios"
 
     - name: Include NX-OS Tasks
-      include_tasks: tasks/get_device_state_snapshot/nxos.yml
+      ansible.builtin.include_tasks: tasks/get_device_state_snapshot/nxos.yml
       when: ansible_network_os == "nxos"
 
   post_tasks:
@@ -42,7 +42,7 @@
       delegate_to: localhost
 
     - name: Merge CSV Files into an Excel Workbook
-      command: /usr/bin/python3
+      ansible.builtin.command: /usr/bin/python3
       args:
         stdin: |
           from pathlib import Path
