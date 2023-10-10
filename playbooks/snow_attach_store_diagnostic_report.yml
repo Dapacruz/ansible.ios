@@ -26,8 +26,7 @@
           host: "{{ snow_instance }}"
           username: "{{ snow_username }}"
           password: "{{ snow_password }}"
-        # number: "{{ snow_incident }}"
-        number: INC003032116
+        number: "{{ snow_incident }}"
         attachments:
           - path: "{{ output_dir }}/{{ snow_incident | lower }}_store_diagnostic_report_{{ timestamp }}.txt"
 
@@ -104,8 +103,7 @@
           host: "{{ snow_instance }}"
           username: "{{ snow_username }}"
           password: "{{ snow_password }}"
-        # number: "{{ snow_incident }}"
-        number: INC003032116
+        number: "{{ snow_incident }}"
         other:
           work_notes: |
             [code]<h3>Store Analysis</h3><pre style="background-color: transparent; border-width: 0">[/code]
