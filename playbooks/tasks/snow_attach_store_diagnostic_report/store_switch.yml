@@ -2,39 +2,28 @@
 - name: Store Switch | Fetching name server configuration
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
-      --no-config
       --insecure
       --timeout 60
-      --user {{ ansible_user }}
-      --password {{ ansible_ssh_pass }}
       --command "show running-config | include ip name-server 10.10.10.10"
       {{ store_switch }}
   register: name_server
   changed_when: false
-  no_log: true
 
 - name: Store Switch | Fetching domain lookup configuration
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
-      --no-config
       --insecure
       --timeout 60
-      --user {{ ansible_user }}
-      --password {{ ansible_ssh_pass }}
       --command "show running-config | include no ip domain-lookup"
       {{ store_switch }}
   register: domain_lookup
   changed_when: false
-  no_log: true
 
 - name: Store Switch | Enabling DNS lookups
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
-      --no-config
       --insecure
       --timeout 60
-      --user {{ ansible_user }}
-      --password {{ ansible_ssh_pass }}
       --command "configure terminal"
       --command "ip name-server 10.10.10.10"
       --command "ip domain-lookup"
@@ -42,49 +31,36 @@
       --command "copy running-config startup-config"
       {{ store_switch }}
   when: name_server.stdout_lines[5] == "" or domain_lookup.stdout_lines[5] == "no ip domain-lookup"
-  no_log: true
 
 - name: Store Switch | Fetching switch uptime
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
-      --no-config
       --insecure
       --timeout 60
-      --user {{ ansible_user }}
-      --password {{ ansible_ssh_pass }}
       --command "show version | include uptime"
       {{ store_switch }}
   register: store_switch_uptime
   changed_when: false
-  no_log: true
 
 - name: Store Switch | Tracing route to the internet
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
-      --no-config
       --insecure
       --timeout 60
-      --user {{ ansible_user }}
-      --password {{ ansible_ssh_pass }}
       --command "traceroute 8.8.8.8"
       {{ store_switch }}
   register: store_internet_egress
   changed_when: false
-  no_log: true
 
 - name: Store Switch | Testing DNS resolution
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
-      --no-config
       --insecure
       --timeout 60
-      --user {{ ansible_user }}
-      --password {{ ansible_ssh_pass }}
       --command "ping {{ verifone_fqdn }} repeat 1"
       {{ store_switch }}
   register: store_switch_dns_test
   changed_when: false
-  no_log: true
 
 - name: Store Switch | Setting verifone_ip fact
   ansible.builtin.set_fact:
@@ -93,41 +69,29 @@
 - name: Store Switch | Connecting to Williams Sonoma site
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
-      --no-config
       --insecure
       --timeout 60
-      --user {{ ansible_user }}
-      --password {{ ansible_ssh_pass }}
       --command "connect www.williams-sonoma.com 443"
       {{ store_switch }}
   register: store_switch_connect_ws_site
   changed_when: false
-  no_log: true
 
 - name: Store Switch | Connecting to Store Wide Web site
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
-      --no-config
       --insecure
       --timeout 60
-      --user {{ ansible_user }}
-      --password {{ ansible_ssh_pass }}
       --command "connect {{ storesweb_fqdn }} 443"
       {{ store_switch }}
   register: store_switch_connect_storesweb
   changed_when: false
-  no_log: true
 
 - name: Store Switch | Connecting to Verifone API
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
-      --no-config
       --insecure
       --timeout 60
-      --user {{ ansible_user }}
-      --password {{ ansible_ssh_pass }}
       --command "connect {{ verifone_fqdn }} 443"
       {{ store_switch }}
   register: store_switch_connect_verifone
   changed_when: false
-  no_log: true

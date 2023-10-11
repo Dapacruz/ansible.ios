@@ -2,71 +2,51 @@
 - name: Rocklin MPLS Router | Checking route table for store POS subnet
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
-      --no-config
       --insecure
       --timeout 60
-      --user {{ ansible_user }}
-      --password {{ ansible_ssh_pass }}
       --command "show ip route | include {{ store_subnet }}"
       {{ rocklin_mpls_router }}
   register: store_subnet_lookup
   changed_when: false
-  no_log: true
 
 - name: Rocklin MPLS Router | Fetching store broadband VPN tunnel status
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
-      --no-config
       --insecure
       --timeout 60
-      --user {{ ansible_user }}
-      --password {{ ansible_ssh_pass }}
       --command "show ip bgp neighbors {{ store_bb_tun1 }} routes | include ^Total .+[1-9][0-9]* *$"
       {{ rocklin_mpls_router }}
   register: store_bb_tunnel_status
   changed_when: false
   when: not sdwan_store
-  no_log: true
 
 - name: Rocklin MPLS Router | Fetching store broadband VPN tunnel down count
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
-      --no-config
       --insecure
       --timeout 60
-      --user {{ ansible_user }}
-      --password {{ ansible_ssh_pass }}
       --command "show ip bgp summary | count [^0-9]$"
       {{ rocklin_mpls_router }}
   register: store_vpn_down_count
   changed_when: false
   when: not sdwan_store
-  no_log: true
 
 - name: Rocklin MPLS Router | Pinging store router
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
-      --no-config
       --insecure
       --timeout 60
-      --user {{ ansible_user }}
-      --password {{ ansible_ssh_pass }}
       --command "ping {{ store_router }}"
       {{ rocklin_mpls_router }}
   register: store_router_ping
   changed_when: false
-  no_log: true
 
 - name: Rocklin MPLS Router | Pinging store switch
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
-      --no-config
       --insecure
       --timeout 60
-      --user {{ ansible_user }}
-      --password {{ ansible_ssh_pass }}
       --command "ping {{ store_switch }}"
       {{ rocklin_mpls_router }}
   register: store_switch_ping
   changed_when: false
-  no_log: true
