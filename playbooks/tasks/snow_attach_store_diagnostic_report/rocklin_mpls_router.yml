@@ -1,5 +1,5 @@
 ---
-- name: Rocklin MPLS Router | Checking route table for store POS subnet
+- name: Rocklin MPLS Router | Check route table for store POS subnet
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure
@@ -9,7 +9,7 @@
   register: store_subnet_lookup
   changed_when: false
 
-- name: Rocklin MPLS Router | Fetching store broadband VPN tunnel status
+- name: Rocklin MPLS Router | Fetch store broadband VPN tunnel status
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure
@@ -20,7 +20,7 @@
   changed_when: false
   when: not sdwan_store
 
-- name: Rocklin MPLS Router | Fetching store broadband VPN tunnel down count
+- name: Rocklin MPLS Router | Fetch store broadband VPN tunnel down count
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure
@@ -31,7 +31,7 @@
   changed_when: false
   when: not sdwan_store
 
-- name: Rocklin MPLS Router | Pinging store router
+- name: Rocklin MPLS Router | Ping store router
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure
@@ -41,7 +41,7 @@
   register: store_router_ping
   changed_when: false
 
-- name: Rocklin MPLS Router | Pinging store switch
+- name: Rocklin MPLS Router | Ping store switch
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure

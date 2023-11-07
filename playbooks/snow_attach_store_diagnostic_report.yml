@@ -6,7 +6,7 @@
     - output
 
   tasks:
-    - name: Creating panos-cli configuration file
+    - name: Create panos-cli configuration file
       ansible.builtin.copy:
         dest: /home/runner/.panos-cli.yml
         content: |
@@ -15,7 +15,7 @@
           password: "{{ panw_password }}"
       no_log: true
 
-    - name: Creating ios-cli configuration file
+    - name: Create ios-cli configuration file
       ansible.builtin.copy:
         dest: /home/runner/.ios-cli.yml
         content: |
@@ -24,7 +24,7 @@
           password: "{{ ansible_ssh_pass }}"
       no_log: true
 
-    - name: Importing tasks
+    - name: Import tasks
       ansible.builtin.include_tasks: "{{ item }}"
       loop:
         - tasks/snow_attach_store_diagnostic_report/servicenow.yml
@@ -33,12 +33,12 @@
         - tasks/snow_attach_store_diagnostic_report/firewall.yml
 
   post_tasks:
-    - name: Rendering diagnostic report
+    - name: Render diagnostic report
       ansible.builtin.template:
         src: templates/snow_attach_store_diagnostic_report.j2
         dest: "{{ output_dir }}/{{ snow_incident | lower }}_store_diagnostic_report_{{ timestamp }}.txt"
 
-    - name: Attaching diagnostic report to incident
+    - name: Attach diagnostic report to incident
       servicenow.itsm.incident:
         instance:
           host: "{{ snow_instance }}"
@@ -48,7 +48,7 @@
         attachments:
           - path: "{{ output_dir }}/{{ snow_incident | lower }}_store_diagnostic_report_{{ timestamp }}.txt"
 
-    - name: Setting work_notes fact
+    - name: Set work_notes fact
       ansible.builtin.set_fact:
         work_notes: |
           Store Switch:<br />
@@ -115,7 +115,7 @@
             Rocklin: {{ active_verifone_sessions_rocklin.stdout_lines | length - 1 }}<br />
             Sacramento: {{ active_verifone_sessions_sacramento.stdout_lines | length - 1 }}<br />
 
-    - name: Updating incident work notes
+    - name: Update incident work notes
       servicenow.itsm.incident:
         instance:
           host: "{{ snow_instance }}"

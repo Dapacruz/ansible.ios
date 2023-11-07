@@ -1,17 +1,17 @@
 ---
-- name: Firewall | Fetching Ashburn active Verifone sessions
+- name: Firewall | Fetch Ashburn active Verifone sessions
   ansible.builtin.shell: "{{ playbook_dir }}/library/go/panos-cli firewall run commands --insecure --timeout 60 --command 'show session all filter state active destination {{ verifone_ip }} | match {{ pin_pad_subnet_host_range_regex }}' {{ firewalls.asbc1_corp_edge }} | egrep '\\*{3} show|ACTIVE'"
   register: active_verifone_sessions_ashburn
   changed_when: false
   failed_when: active_verifone_sessions_ashburn.rc != 0 and active_verifone_sessions_ashburn.rc != 1
 
-- name: Firewall | Fetching Rocklin active Verifone sessions
+- name: Firewall | Fetch Rocklin active Verifone sessions
   ansible.builtin.shell: "{{ playbook_dir }}/library/go/panos-cli firewall run commands --insecure --timeout 60 --command 'show session all filter state active destination {{ verifone_ip }} | match {{ pin_pad_subnet_host_range_regex }}' {{ firewalls.rkat1_corp_edge }} | egrep '\\*{3} show|ACTIVE'"
   register: active_verifone_sessions_rocklin
   changed_when: false
   failed_when: active_verifone_sessions_rocklin.rc != 0 and active_verifone_sessions_rocklin.rc != 1
 
-- name: Firewall | Fetching Sacramento active Verifone sessions
+- name: Firewall | Fetch Sacramento active Verifone sessions
   ansible.builtin.shell: "{{ playbook_dir }}/library/go/panos-cli firewall run commands --insecure --timeout 60 --command 'show session all filter state active destination {{ verifone_ip }} | match {{ pin_pad_subnet_host_range_regex }}' {{ firewalls.sast1_corp_edge }} | egrep '\\*{3} show|ACTIVE'"
   register: active_verifone_sessions_sacramento
   changed_when: false
