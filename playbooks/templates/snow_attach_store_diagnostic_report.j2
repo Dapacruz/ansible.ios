@@ -92,12 +92,12 @@ DNS Resolution Functional: N/A
 {% endif %}
 {% if store_switch_connect_ws_site.stdout %}
 {% if store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
-Williams Sonoma Site (www.williams-sonoma.com) Reachable: Yes
+Williams Sonoma Site (williams-sonoma.com) Reachable: Yes
 {% else %}
-Williams Sonoma Site (www.williams-sonoma.com) Reachable: No
+Williams Sonoma Site (williams-sonoma.com) Reachable: No
 {% endif %}
 {% else %}
-Williams Sonoma Site (www.williams-sonoma.com) Reachable: N/A
+Williams Sonoma Site (williams-sonoma.com) Reachable: N/A
 {% endif %}
 {% if store_switch_connect_storesweb.stdout %}
 {% if store_switch_connect_storesweb.stdout | regex_search("Open", multiline=True, ignorecase=False) %}

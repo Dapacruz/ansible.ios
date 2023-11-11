@@ -129,21 +129,21 @@
           {% endif %}
           {% if store_switch_connect_ws_site.stdout %}
           {% if store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
-          Williams Sonoma Site (www.williams-sonoma.com) Reachable: Yes<br />
+          Williams Sonoma Site (williams-sonoma.com) Reachable: Yes<br />
           {% else %}
-          Williams Sonoma Site (www.williams-sonoma.com) Reachable: <span style="color: red">No</span><br />
+          Williams Sonoma Site (williams-sonoma.com) Reachable: <span style="color: red">No</span><br />
           {% endif %}
           {% else %}
-          Williams Sonoma Site (www.williams-sonoma.com) Reachable: <span style="color: red">N/A</span><br />
+          Williams Sonoma Site (williams-sonoma.com) Reachable: <span style="color: red">N/A</span><br />
           {% endif %}
           {% if store_switch_connect_storesweb.stdout %}
           {% if store_switch_connect_storesweb.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
-          Store Wide Web Site ({{ storesweb_fqdn }} ) Reachable: Yes<br />
+          Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: Yes<br />
           {% else %}
-          Store Wide Web Site ({{ storesweb_fqdn }} ) Reachable: <span style="color: red">No</span><br />
+          Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: <span style="color: red">No</span><br />
           {% endif %}
           {% else %}
-          Store Wide Web Site ({{ storesweb_fqdn }} ) Reachable: <span style="color: red">N/A</span><br />
+          Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: <span style="color: red">N/A</span><br />
           {% endif %}
           {% if store_switch_connect_verifone.stdout %}
           {% if store_switch_connect_verifone.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
