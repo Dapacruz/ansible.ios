@@ -31,7 +31,7 @@
     force_basic_auth: true
   register: store_network_details
 
-- name: ServiceNow | Set facts
+- name: ServiceNow | Set store facts
   ansible.builtin.set_fact:
     store_concept: "{{ store_details.json.result[0].u_concept }}"
     sdwan_store: "{{ store_details.json.result[0].u_sdwan }}"

@@ -1,0 +1,73 @@
+---
+- name: SD-WAN | Fetch authentication cookie
+  ansible.builtin.uri:
+    url: https://{{ vmanage_host }}:{{ vmanage_port }}/j_security_check
+    method: POST
+    body_format: form-urlencoded
+    body:
+      j_username: "{{ vmanage_user }}"
+      j_password: "{{ vmanage_password }}"
+    status_code: 200
+    validate_certs: false
+  register: vmanage_cookie
+  when: sdwan_store
+  ignore_errors: true
+
+- name: SD-WAN | Fetch cross-site request forgery prevention token
+  ansible.builtin.uri:
+    url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/client/token
+    method: GET
+    headers:
+      Content-Type: application/json
+      Cookie: "{{ vmanage_cookie.cookies_string }}"
+    status_code: 200
+    return_content: true
+    validate_certs: false
+  register: vmanage_token
+  when: sdwan_store
+  ignore_errors: true
+
+- name: SD-WAN | Fetch Rocklin hub 1 BFD sessions
+  ansible.builtin.uri:
+    url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/device/bfd/sessions?deviceId={{ vmanage_device_ids.rkat1_hub_1 }}&site-id={{ store_number | int }}
+    method: GET
+    headers:
+      Content-Type: application/json
+      Cookie: "{{ vmanage_cookie.cookies_string }}"
+      X-XSRF-TOKEN: "{{ vmanage_token.content }}"
+    status_code: 200
+    return_content: true
+    validate_certs: false
+  register: rkat1_hub_1_sessions
+  when: sdwan_store
+  ignore_errors: true
+
+- name: SD-WAN | Fetch Rocklin hub 2 BFD sessions
+  ansible.builtin.uri:
+    url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/device/bfd/sessions?deviceId={{ vmanage_device_ids.rkat1_hub_2 }}&site-id={{ store_number | int }}
+    method: GET
+    headers:
+      Content-Type: application/json
+      Cookie: "{{ vmanage_cookie.cookies_string }}"
+      X-XSRF-TOKEN: "{{ vmanage_token.content }}"
+    status_code: 200
+    return_content: true
+    validate_certs: false
+  register: rkat1_hub_2_sessions
+  when: sdwan_store
+  ignore_errors: true
+
+- name: SD-WAN | Fetch Ashburn hub 1 BFD sessions
+  ansible.builtin.uri:
+    url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/device/bfd/sessions?deviceId={{ vmanage_device_ids.asbc1_hub_1 }}&site-id={{ store_number | int }}
+    method: GET
+    headers:
+      Content-Type: application/json
+      Cookie: "{{ vmanage_cookie.cookies_string }}"
+      X-XSRF-TOKEN: "{{ vmanage_token.content }}"
+    status_code: 200
+    return_content: true
+    validate_certs: false
+  register: asbc1_hub_1_sessions
+  when: sdwan_store
+  ignore_errors: true

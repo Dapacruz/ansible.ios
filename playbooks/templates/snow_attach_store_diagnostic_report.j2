@@ -15,7 +15,7 @@ Mist Wireless: {% if mist_store %}Yes{% else %}No{% endif +%}
 ##### Store Analysis ##############################
 
 Store Switch:
-{% if store_switch_ping.stdout %}
+{% if store_switch_ping.stdout is defined %}
 {% if store_switch_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) %}
   Pingable: Yes
 {% else %}
@@ -24,13 +24,13 @@ Store Switch:
 {% else %}
   Pingable: N/A
 {% endif %}
-{% if store_switch_uptime.stdout_lines %}
+{% if store_switch_uptime.stdout_lines is defined %}
   Uptime: {{ store_switch_uptime.stdout_lines[5] | regex_replace("^.+uptime is ", "") }}
 {% else %}
   Uptime: N/A
 {% endif %}
 Store Router:
-{% if store_router_ping.stdout %}
+{% if store_router_ping.stdout is defined %}
 {% if store_router_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) %}
   Pingable: Yes
 {% else %}
@@ -39,7 +39,7 @@ Store Router:
 {% else %}
   Pingable: N/A
 {% endif %}
-{% if store_subnet_lookup.stdout_lines %}
+{% if store_subnet_lookup.stdout_lines is defined %}
 {% if store_subnet_lookup.stdout_lines[5] | regex_search(store_subnet, multiline=False, ignorecase=False) %}
 MPLS Path: Up
 {% else %}
@@ -49,7 +49,7 @@ MPLS Path: Down
 MPLS Path: N/A
 {% endif %}
 {% if not sdwan_store %}
-{% if store_bb_tunnel_status.stdout %}
+{% if store_bb_tunnel_status.stdout is defined %}
 {% if store_bb_tunnel_status.stdout | regex_search("prefixes\s[1-9]\d*\s*$", multiline=True, ignorecase=False) %}
 Broadband Tunnel: Up
 {% else %}
@@ -59,7 +59,34 @@ Broadband Tunnel: Down
 Broadband Tunnel: N/A
 {% endif %}
 {% endif %}
-{% if store_internet_egress.stdout %}
+{% if sdwan_store %}
+SD-WAN Tunnel States:
+{% if asbc1_hub_1_sessions.json.data is defined %}
+  Ashburn Hub 1:
+{% for s in asbc1_hub_1_sessions.json.data %}
+    {{ s["local-color"] | title }}: {{ s.state | title }}
+{% endfor %}
+{% else %}
+  Ashburn Hub 1: N/A
+{% endif %}
+{% if rkat1_hub_1_sessions.json.data is defined %}
+  Rocklin Hub 1:
+{% for s in rkat1_hub_1_sessions.json.data %}
+    {{ s["local-color"] | title }}: {{ s.state | title }}
+{% endfor %}
+{% else %}
+  Rocklin Hub 1: N/A
+{% endif %}
+{% if rkat1_hub_2_sessions.json.data is defined %}
+  Rocklin Hub 2:
+{% for s in rkat1_hub_2_sessions.json.data %}
+    {{ s["local-color"] | title }}: {{ s.state | title }}
+{% endfor %}
+{% else %}
+  Rocklin Hub 2: N/A
+{% endif %}
+{% endif %}
+{% if store_internet_egress.stdout is defined %}
 {% if store_internet_egress.stdout | regex_search("8.8.8.8.+msec", multiline=True, ignorecase=False) or store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
 Internet Reachable: Yes
 {% else %}
@@ -68,7 +95,7 @@ Internet Reachable: No
 {% else %}
 Internet Reachable: N/A
 {% endif %}
-{% if store_internet_egress.stdout %}
+{% if store_internet_egress.stdout is defined %}
 {% if store_internet_egress.stdout | regex_search("asgi1", multiline=True, ignorecase=False) %}
 Internet Egress: Ashburn
 {% elif store_internet_egress.stdout | regex_search("rkat1", multiline=True, ignorecase=False)  %}
@@ -81,7 +108,7 @@ Internet Egress: Unknown
 {% else %}
 Internet Egress: N/A
 {% endif %}
-{% if store_switch_dns_test.stdout %}
+{% if store_switch_dns_test.stdout is defined %}
 {% if store_switch_dns_test.stdout | regex_search("Translating.+domain\sserver\s\(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\)\s\[OK\]", multiline=True, ignorecase=False) %}
 DNS Resolution Functional: Yes
 {% else %}
@@ -90,7 +117,7 @@ DNS Resolution Functional: No
 {% else %}
 DNS Resolution Functional: N/A
 {% endif %}
-{% if store_switch_connect_ws_site.stdout %}
+{% if store_switch_connect_ws_site.stdout is defined %}
 {% if store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
 Williams Sonoma Site (williams-sonoma.com) Reachable: Yes
 {% else %}
@@ -99,7 +126,7 @@ Williams Sonoma Site (williams-sonoma.com) Reachable: No
 {% else %}
 Williams Sonoma Site (williams-sonoma.com) Reachable: N/A
 {% endif %}
-{% if store_switch_connect_storesweb.stdout %}
+{% if store_switch_connect_storesweb.stdout is defined %}
 {% if store_switch_connect_storesweb.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
 Store Wide Web Site ({{ storesweb_fqdn }} ) Reachable: Yes
 {% else %}
@@ -108,7 +135,7 @@ Store Wide Web Site ({{ storesweb_fqdn }} ) Reachable: No
 {% else %}
 Store Wide Web Site ({{ storesweb_fqdn }} ) Reachable: N/A
 {% endif %}
-{% if store_switch_connect_verifone.stdout %}
+{% if store_switch_connect_verifone.stdout is defined %}
 {% if store_switch_connect_verifone.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
 Verifone API (api.vfipayna.com) Reachable: Yes
 {% else %}
@@ -137,7 +164,7 @@ Verifone active firewall sessions:
 
 ##### Rocklin MPLS Router: Store Switch Reachability ##############################
 
-{% if store_switch_ping.stdout_lines %}
+{% if store_switch_ping.stdout_lines is defined %}
 {% for item in store_switch_ping.stdout_lines[4:-4] %}
 {# Strip ASCII control characters #}
 {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
@@ -155,7 +182,7 @@ N/A
 
 ##### Store Switch: Uptime ##############################
 
-{% if store_switch_uptime.stdout_lines %}
+{% if store_switch_uptime.stdout_lines is defined %}
 {% for item in store_switch_uptime.stdout_lines[4:-4] %}
 {# Strip ASCII control characters #}
 {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
@@ -173,7 +200,7 @@ N/A
 
 ##### Rocklin MPLS Router: Store Router Reachability ##############################
 
-{% if store_router_ping.stdout_lines %}
+{% if store_router_ping.stdout_lines is defined %}
 {% for item in store_router_ping.stdout_lines[4:-4] %}
 {# Strip ASCII control characters #}
 {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
@@ -191,7 +218,7 @@ N/A
 
 ##### Rocklin MPLS Router: Store POS Subnet in Route Table ##############################
 
-{% if store_subnet_lookup.stdout_lines %}
+{% if store_subnet_lookup.stdout_lines is defined %}
 {% for item in store_subnet_lookup.stdout_lines[4:-4] %}
 {# Strip ASCII control characters #}
 {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
@@ -207,10 +234,37 @@ N/A
 {% endif %}
 
 
+#### SD-WAN: Rocklin Hub 1 BFD Sessions
+
+{% if rkat1_hub_1_sessions.json.data is defined %}
+{{ rkat1_hub_1_sessions.json.data | ansible.builtin.to_nice_json }}
+{% else %}
+N/A
+{% endif %}
+
+
+#### SD-WAN: Rocklin Hub 2 BFD Sessions
+
+{% if rkat1_hub_2_sessions.json.data is defined %}
+{{ rkat1_hub_2_sessions.json.data | ansible.builtin.to_nice_json }}
+{% else %}
+N/A
+{% endif %}
+
+
+#### SD-WAN: Ashburn Hub 1 BFD Sessions
+
+{% if asbc1_hub_1_sessions.json.data is defined %}
+{{ asbc1_hub_1_sessions.json.data | ansible.builtin.to_nice_json }}
+{% else %}
+N/A
+{% endif %}
+
+
 {% if not sdwan_store %}
 ##### Rocklin MPLS Router: Store Broadband VPN Tunnel Status ##############################
 
-{% if store_bb_tunnel_status.stdout_lines %}
+{% if store_bb_tunnel_status.stdout_lines is defined %}
 {% for item in store_bb_tunnel_status.stdout_lines[4:-4] %}
 {# Strip ASCII control characters #}
 {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
@@ -229,7 +283,7 @@ N/A
 {% endif %}
 ##### Store Switch: Internet Path ##############################
 
-{% if store_internet_egress.stdout_lines %}
+{% if store_internet_egress.stdout_lines is defined %}
 {% for item in store_internet_egress.stdout_lines[4:-4] %}
 {# Strip ASCII control characters #}
 {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
@@ -247,7 +301,7 @@ N/A
 
 ##### Store Switch: DNS Resolution ##############################
 
-{% if store_switch_dns_test.stdout_lines %}
+{% if store_switch_dns_test.stdout_lines is defined %}
 {% for item in store_switch_dns_test.stdout_lines[4:-4] %}
 {# Strip ASCII control characters #}
 {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
@@ -265,7 +319,7 @@ N/A
 
 ##### Store Switch: Connect to www.williams-sonoma.com ##############################
 
-{% if store_switch_connect_ws_site.stdout_lines %}
+{% if store_switch_connect_ws_site.stdout_lines is defined %}
 {% for item in store_switch_connect_ws_site.stdout_lines[4:-4] %}
 {# Strip ASCII control characters #}
 {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
@@ -283,7 +337,7 @@ N/A
 
 ##### Store Switch: Connect to Store Wide Web ##############################
 
-{% if store_switch_connect_storesweb.stdout_lines %}
+{% if store_switch_connect_storesweb.stdout_lines is defined %}
 {% for item in store_switch_connect_storesweb.stdout_lines[4:-4] %}
 {# Strip ASCII control characters #}
 {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
@@ -301,7 +355,7 @@ N/A
 
 ##### Store Switch: Connect to Verifone ##############################
 
-{% if store_switch_connect_verifone.stdout_lines %}
+{% if store_switch_connect_verifone.stdout_lines is defined %}
 {% for item in store_switch_connect_verifone.stdout_lines[4:-4] %}
 {# Strip ASCII control characters #}
 {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
@@ -374,7 +428,7 @@ N/A
 
 ##### Rocklin MPLS Router: Store Broadband VPN Tunnels Down ##############################
 
-{% if store_vpn_down_count.stdout_lines %}
+{% if store_vpn_down_count.stdout_lines is defined %}
 {% for item in store_vpn_down_count.stdout_lines[4:-4] %}
 {# Strip ASCII control characters #}
 {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
