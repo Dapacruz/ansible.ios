@@ -53,7 +53,7 @@
       ansible.builtin.set_fact:
         work_notes: |
           Store Switch:<br />
-          {% if store_switch_ping.stdout is defined %}
+          {% if store_switch_ping.stdout | default("") %}
           {% if store_switch_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) %}
             Pingable: Yes<br />
           {% else %}
@@ -62,13 +62,13 @@
           {% else %}
             Pingable: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if store_switch_uptime.stdout_lines[5] is defined %}
+          {% if store_switch_uptime.stdout_lines[5] | default("") %}
             Uptime: {{ store_switch_uptime.stdout_lines[5] | regex_replace("^.+uptime is ", "") }}<br />
           {% else %}
             Uptime: <span style="color: red">N/A</span><br />
           {% endif %}
           Store Router:<br />
-          {% if store_router_ping.stdout is defined %}
+          {% if store_router_ping.stdout | default("") %}
           {% if store_router_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) %}
             Pingable: Yes<br />
           {% else %}
@@ -77,7 +77,7 @@
           {% else %}
             Pingable: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if store_subnet_lookup.stdout_lines[5] is defined %}
+          {% if store_subnet_lookup.stdout_lines[5] | default("") %}
           {% if store_subnet_lookup.stdout_lines[5] | regex_search(store_subnet, multiline=False, ignorecase=False) %}
           MPLS Path: Up<br />
           {% else %}
@@ -87,7 +87,7 @@
           MPLS Path: <span style="color: red">N/A</span><br />
           {% endif %}
           {% if not sdwan_store %}
-          {% if store_bb_tunnel_status.stdout is defined %}
+          {% if store_bb_tunnel_status.stdout | default("") %}
           {% if store_bb_tunnel_status.stdout | regex_search("prefixes\s[1-9]\d*\s*$", multiline=True, ignorecase=False) %}
           Broadband Tunnel: Up<br />
           {% else %}
@@ -99,7 +99,7 @@
           {% endif %}
           {% if sdwan_store %}
           SD-WAN Tunnel States:<br />
-          {% if asbc1_hub_1_sessions.json.data is defined %}
+          {% if asbc1_hub_1_sessions.json.data | default("") %}
             Ashburn Hub 1:<br />
           {% for s in asbc1_hub_1_sessions.json.data %}
               {{ s["local-color"] | title }}: {% if s.state == "up" %}Up<br />{% else %}<span style="color: red">{{ s.state | title }}</span><br />{% endif +%}
@@ -107,7 +107,7 @@
           {% else %}
             Ashburn Hub 1: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if rkat1_hub_1_sessions.json.data is defined %}
+          {% if rkat1_hub_1_sessions.json.data | default("") %}
             Rocklin Hub 1:<br />
           {% for s in rkat1_hub_1_sessions.json.data %}
               {{ s["local-color"] | title }}: {% if s.state == "up" %}Up<br />{% else %}<span style="color: red">{{ s.state | title }}</span><br />{% endif +%}
@@ -115,7 +115,7 @@
           {% else %}
             Rocklin Hub 1: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if rkat1_hub_2_sessions.json.data is defined %}
+          {% if rkat1_hub_2_sessions.json.data | default("") %}
             Rocklin Hub 2:<br />
           {% for s in rkat1_hub_2_sessions.json.data %}
               {{ s["local-color"] | title }}: {% if s.state == "up" %}Up<br />{% else %}<span style="color: red">{{ s.state | title }}</span><br />{% endif +%}
@@ -124,7 +124,7 @@
             Rocklin Hub 2: <span style="color: red">N/A</span><br />
           {% endif %}
           {% endif %}
-          {% if store_internet_egress.stdout is defined %}
+          {% if store_internet_egress.stdout | default("") %}
           {% if store_internet_egress.stdout | regex_search("8.8.8.8.+msec", multiline=True, ignorecase=False) or store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
           Internet Reachable: Yes<br />
           {% else %}
@@ -133,7 +133,7 @@
           {% else %}
           Internet Reachable: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if store_internet_egress.stdout is defined %}
+          {% if store_internet_egress.stdout | default("") %}
           {% if store_internet_egress.stdout | regex_search("asgi1", multiline=True, ignorecase=False) %}
           Internet Egress: Ashburn<br />
           {% elif store_internet_egress.stdout | regex_search("rkat1", multiline=True, ignorecase=False)  %}
@@ -146,7 +146,7 @@
           {% else %}
           Internet Egress: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if store_switch_dns_test.stdout is defined %}
+          {% if store_switch_dns_test.stdout | default("") %}
           {% if store_switch_dns_test.stdout | regex_search("Translating.+domain\sserver\s\(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\)\s\[OK\]", multiline=True, ignorecase=False) %}
           DNS Resolution Functional: Yes<br />
           {% else %}
@@ -155,7 +155,7 @@
           {% else %}
           DNS Resolution Functional: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if store_switch_connect_ws_site.stdout is defined %}
+          {% if store_switch_connect_ws_site.stdout | default("") %}
           {% if store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
           Williams Sonoma Site (williams-sonoma.com) Reachable: Yes<br />
           {% else %}
@@ -164,7 +164,7 @@
           {% else %}
           Williams Sonoma Site (williams-sonoma.com) Reachable: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if store_switch_connect_storesweb.stdout is defined %}
+          {% if store_switch_connect_storesweb.stdout | default("") %}
           {% if store_switch_connect_storesweb.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
           Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: Yes<br />
           {% else %}
@@ -173,7 +173,7 @@
           {% else %}
           Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if store_switch_connect_verifone.stdout is defined %}
+          {% if store_switch_connect_verifone.stdout | default("") %}
           {% if store_switch_connect_verifone.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
           Verifone API (api.vfipayna.com) Reachable: Yes<br />
           {% else %}
@@ -183,17 +183,17 @@
           Verifone API (api.vfipayna.com) Reachable: <span style="color: red">N/A</span><br />
           {% endif %}
           Verifone active firewall sessions:<br />
-          {% if active_verifone_sessions_ashburn.stdout_lines is defined %}
+          {% if active_verifone_sessions_ashburn.stdout_lines | default([]) %}
             Ashburn: {{ active_verifone_sessions_ashburn.stdout_lines | length - 1 }}<br />
           {% else %}
             Ashburn: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if active_verifone_sessions_rocklin.stdout_lines is defined %}
+          {% if active_verifone_sessions_rocklin.stdout_lines | default([]) %}
             Rocklin: {{ active_verifone_sessions_rocklin.stdout_lines | length - 1 }}<br />
           {% else %}
             Rocklin: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if active_verifone_sessions_sacramento.stdout_lines is defined %}
+          {% if active_verifone_sessions_sacramento.stdout_lines | default([]) %}
             Sacramento: {{ active_verifone_sessions_sacramento.stdout_lines | length - 1 }}<br />
           {% else %}
             Sacramento: <span style="color: red">N/A</span><br />
