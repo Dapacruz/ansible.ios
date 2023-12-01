@@ -6,24 +6,6 @@
     - Output
 
   tasks:
-    - name: Create panos-cli configuration file
-      ansible.builtin.copy:
-        dest: /home/runner/.panos-cli.yml
-        content: |
-          apikey: "{{ panw_api_token }}"
-          user: "{{ panw_user }}"
-          password: "{{ panw_password }}"
-      no_log: true
-
-    - name: Create ios-cli configuration file
-      ansible.builtin.copy:
-        dest: /home/runner/.ios-cli.yml
-        content: |
-          apikey: "{{ panw_api_token }}"
-          user: "{{ ansible_user }}"
-          password: "{{ ansible_ssh_pass }}"
-      no_log: true
-
     - name: Import tasks
       ansible.builtin.include_tasks: "{{ item }}"
       loop:
