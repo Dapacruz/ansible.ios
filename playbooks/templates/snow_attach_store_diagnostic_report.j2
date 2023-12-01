@@ -24,7 +24,7 @@ Store Switch:
 {% else %}
   Pingable: N/A
 {% endif %}
-{% if store_switch_uptime.stdout_lines is defined %}
+{% if store_switch_uptime.stdout_lines[5] is defined %}
   Uptime: {{ store_switch_uptime.stdout_lines[5] | regex_replace("^.+uptime is ", "") }}
 {% else %}
   Uptime: N/A
@@ -39,7 +39,7 @@ Store Router:
 {% else %}
   Pingable: N/A
 {% endif %}
-{% if store_subnet_lookup.stdout_lines is defined %}
+{% if store_subnet_lookup.stdout_lines[5] is defined %}
 {% if store_subnet_lookup.stdout_lines[5] | regex_search(store_subnet, multiline=False, ignorecase=False) %}
 MPLS Path: Up
 {% else %}
@@ -60,7 +60,7 @@ Broadband Tunnel: N/A
 {% endif %}
 {% endif %}
 {% if sdwan_store %}
-SD-WAN Tunnel States:
+SD-WAN Tunnels:
 {% if asbc1_hub_1_sessions.json.data is defined %}
   Ashburn Hub 1:
 {% for s in asbc1_hub_1_sessions.json.data %}

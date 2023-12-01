@@ -62,7 +62,7 @@
           {% else %}
             Pingable: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if store_switch_uptime.stdout_lines is defined %}
+          {% if store_switch_uptime.stdout_lines[5] is defined %}
             Uptime: {{ store_switch_uptime.stdout_lines[5] | regex_replace("^.+uptime is ", "") }}<br />
           {% else %}
             Uptime: <span style="color: red">N/A</span><br />
@@ -77,7 +77,7 @@
           {% else %}
             Pingable: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if store_subnet_lookup.stdout_lines is defined %}
+          {% if store_subnet_lookup.stdout_lines[5] is defined %}
           {% if store_subnet_lookup.stdout_lines[5] | regex_search(store_subnet, multiline=False, ignorecase=False) %}
           MPLS Path: Up<br />
           {% else %}
