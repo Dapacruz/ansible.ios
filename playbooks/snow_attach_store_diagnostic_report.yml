@@ -35,7 +35,7 @@
       ansible.builtin.set_fact:
         work_notes: |
           Store Switch:<br />
-          {% if store_switch_ping.stdout | default("") %}
+          {% if not store_switch_ping.stderr | default("failed") %}
           {% if store_switch_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) %}
             Pingable: Yes<br />
           {% else %}
@@ -44,13 +44,13 @@
           {% else %}
             Pingable: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if store_switch_uptime.stdout_lines[5] | default("") %}
+          {% if not store_switch_uptime.stderr | default("failed") %}
             Uptime: {{ store_switch_uptime.stdout_lines[5] | regex_replace("^.+uptime is ", "") }}<br />
           {% else %}
             Uptime: <span style="color: red">N/A</span><br />
           {% endif %}
           Store Router:<br />
-          {% if store_router_ping.stdout | default("") %}
+          {% if not store_router_ping.stderr | default("failed") %}
           {% if store_router_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) %}
             Pingable: Yes<br />
           {% else %}
@@ -59,7 +59,7 @@
           {% else %}
             Pingable: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if store_subnet_lookup.stdout_lines[5] | default("") %}
+          {% if not store_subnet_lookup.stderr | default("failed") %}
           {% if store_subnet_lookup.stdout_lines[5] | regex_search(store_subnet, multiline=False, ignorecase=False) %}
           MPLS Path: Up<br />
           {% else %}
@@ -69,7 +69,7 @@
           MPLS Path: <span style="color: red">N/A</span><br />
           {% endif %}
           {% if not sdwan_store %}
-          {% if store_bb_tunnel_status.stdout | default("") %}
+          {% if not store_bb_tunnel_status.stderr | default("failed") %}
           {% if store_bb_tunnel_status.stdout | regex_search("prefixes\s[1-9]\d*\s*$", multiline=True, ignorecase=False) %}
           Broadband Tunnel: Up<br />
           {% else %}
@@ -80,7 +80,7 @@
           {% endif %}
           {% endif %}
           {% if sdwan_store %}
-          SD-WAN Tunnel States:<br />
+          SD-WAN Tunnels:<br />
           {% if asbc1_hub_1_sessions.json.data | default("") %}
             Ashburn Hub 1:<br />
           {% for s in asbc1_hub_1_sessions.json.data %}
@@ -106,7 +106,7 @@
             Rocklin Hub 2: <span style="color: red">N/A</span><br />
           {% endif %}
           {% endif %}
-          {% if store_internet_egress.stdout | default("") %}
+          {% if not store_internet_egress.stderr | default("failed") %}
           {% if store_internet_egress.stdout | regex_search("8.8.8.8.+msec", multiline=True, ignorecase=False) or store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
           Internet Reachable: Yes<br />
           {% else %}
@@ -115,7 +115,7 @@
           {% else %}
           Internet Reachable: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if store_internet_egress.stdout | default("") %}
+          {% if not store_internet_egress.stderr | default("failed") %}
           {% if store_internet_egress.stdout | regex_search("asgi1", multiline=True, ignorecase=False) %}
           Internet Egress: Ashburn<br />
           {% elif store_internet_egress.stdout | regex_search("rkat1", multiline=True, ignorecase=False)  %}
@@ -128,7 +128,7 @@
           {% else %}
           Internet Egress: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if store_switch_dns_test.stdout | default("") %}
+          {% if not store_switch_dns_test.stderr | default("failed") %}
           {% if store_switch_dns_test.stdout | regex_search("Translating.+domain\sserver\s\(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\)\s\[OK\]", multiline=True, ignorecase=False) %}
           DNS Resolution Functional: Yes<br />
           {% else %}
@@ -137,7 +137,7 @@
           {% else %}
           DNS Resolution Functional: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if store_switch_connect_ws_site.stdout | default("") %}
+          {% if not store_switch_connect_ws_site.stderr | default("failed") %}
           {% if store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
           Williams Sonoma Site (williams-sonoma.com) Reachable: Yes<br />
           {% else %}
@@ -146,7 +146,7 @@
           {% else %}
           Williams Sonoma Site (williams-sonoma.com) Reachable: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if store_switch_connect_storesweb.stdout | default("") %}
+          {% if not store_switch_connect_storesweb.stderr | default("failed") %}
           {% if store_switch_connect_storesweb.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
           Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: Yes<br />
           {% else %}
@@ -155,7 +155,7 @@
           {% else %}
           Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if store_switch_connect_verifone.stdout | default("") %}
+          {% if not store_switch_connect_verifone.stderr | default("failed") %}
           {% if store_switch_connect_verifone.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
           Verifone API (api.vfipayna.com) Reachable: Yes<br />
           {% else %}
@@ -165,17 +165,17 @@
           Verifone API (api.vfipayna.com) Reachable: <span style="color: red">N/A</span><br />
           {% endif %}
           Verifone active firewall sessions:<br />
-          {% if active_verifone_sessions_ashburn.stdout_lines | default([]) %}
+          {% if not active_verifone_sessions_ashburn.stderr | default("failed") %}
             Ashburn: {{ active_verifone_sessions_ashburn.stdout_lines | length - 1 }}<br />
           {% else %}
             Ashburn: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if active_verifone_sessions_rocklin.stdout_lines | default([]) %}
+          {% if not active_verifone_sessions_rocklin.stderr | default("failed") %}
             Rocklin: {{ active_verifone_sessions_rocklin.stdout_lines | length - 1 }}<br />
           {% else %}
             Rocklin: <span style="color: red">N/A</span><br />
           {% endif %}
-          {% if active_verifone_sessions_sacramento.stdout_lines | default([]) %}
+          {% if not active_verifone_sessions_sacramento.stderr | default("failed") %}
             Sacramento: {{ active_verifone_sessions_sacramento.stdout_lines | length - 1 }}<br />
           {% else %}
             Sacramento: <span style="color: red">N/A</span><br />
