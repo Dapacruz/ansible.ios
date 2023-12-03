@@ -8,7 +8,7 @@ POS Subnet: {{ store_subnet }} {{ store_subnet_mask }}
 PIN Pad Subnet: {{ store_subnet | regex_replace('^(\\d{3})\\.26\\.', '\\1.28.') }} {{ store_subnet_mask }}
 Switch: {{ store_switch }}
 Router: {{ store_router }}
-Viptela SD-WAN: {% if sdwan_store %}Yes{% else %}No{% endif +%}
+Cisco SD-WAN: {% if sdwan_store %}Yes{% else %}No{% endif +%}
 Mist Wireless: {% if mist_store %}Yes{% else %}No{% endif +%}
 
 
