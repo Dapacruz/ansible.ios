@@ -1,0 +1,48 @@
+---
+- name: Mist | Fetch sites
+  ansible.builtin.uri:
+    url: "{{ mist_url }}/orgs/{{ mist_org_id }}/sites"
+    headers:
+      Content-Type: application/json
+      Authorization: Token {{ mist_api_token }}
+    method: GET
+    status_code: 200
+  register: mist_sites
+  ignore_errors: true
+
+- name: Mist | Set mist_site_id fact
+  ansible.builtin.set_fact:
+    mist_site_id: "{{ mist_sites.json | selectattr('name', 'search', store_number + '$') | map(attribute='id') | join }}"
+
+- name: Mist | Fetch site stats
+  ansible.builtin.uri:
+    url: "{{ mist_url }}/sites/{{ mist_site_id }}/stats"
+    headers:
+      Content-Type: application/json
+      Authorization: Token {{ mist_api_token }}
+    method: GET
+    status_code: 200
+  register: mist_site_stats
+  ignore_errors: true
+
+- name: Mist | Fetch client stats
+  ansible.builtin.uri:
+    url: "{{ mist_url }}/sites/{{ mist_site_id }}/stats/clients"
+    headers:
+      Content-Type: application/json
+      Authorization: Token {{ mist_api_token }}
+    method: GET
+    status_code: 200
+  register: mist_client_stats
+  ignore_errors: true
+
+- name: Mist | Fetch WLANs
+  ansible.builtin.uri:
+    url: "{{ mist_url }}/sites/{{ mist_site_id }}/wlans/derived"
+    headers:
+      Content-Type: application/json
+      Authorization: Token {{ mist_api_token }}
+    method: GET
+    status_code: 200
+  register: mist_wlans
+  ignore_errors: true
