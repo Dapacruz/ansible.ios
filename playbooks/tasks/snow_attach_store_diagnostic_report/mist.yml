@@ -13,6 +13,7 @@
 - name: Mist | Set mist_site_id fact
   ansible.builtin.set_fact:
     mist_site_id: "{{ mist_sites.json | selectattr('name', 'search', store_number + '$') | map(attribute='id') | join }}"
+  ignore_errors: true
 
 - name: Mist | Fetch site stats
   ansible.builtin.uri:
