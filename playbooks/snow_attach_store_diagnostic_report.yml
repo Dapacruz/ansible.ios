@@ -81,30 +81,50 @@
           {% endif %}
           {% endif %}
           {% if sdwan_store %}
-          SD-WAN Tunnels:<br />
+          Cisco SD-WAN:<br />
+            Tunnel Status:<br />
           {% if asbc1_hub_1_sessions.json.data | default("") %}
-            Ashburn Hub 1:<br />
+              Ashburn Hub Router:<br />
           {% for s in asbc1_hub_1_sessions.json.data %}
-              {{ s["local-color"] | title }}: {% if s.state == "up" %}Up<br />{% else %}<span style="color: red">{{ s.state | title }}</span><br />{% endif +%}
+                {{ s["local-color"] | title }}: {% if s.state == "up" %}Up<br />{% else %}<span style="color: red">{{ s.state | title }}</span><br />{% endif +%}
           {% endfor %}
           {% else %}
-            Ashburn Hub 1: <span style="color: red">N/A</span><br />
+              Ashburn Hub Router: <span style="color: red">N/A</span><br />
           {% endif %}
           {% if rkat1_hub_1_sessions.json.data | default("") %}
-            Rocklin Hub 1:<br />
+              Rocklin Hub Router 1:<br />
           {% for s in rkat1_hub_1_sessions.json.data %}
-              {{ s["local-color"] | title }}: {% if s.state == "up" %}Up<br />{% else %}<span style="color: red">{{ s.state | title }}</span><br />{% endif +%}
+                {{ s["local-color"] | title }}: {% if s.state == "up" %}Up<br />{% else %}<span style="color: red">{{ s.state | title }}</span><br />{% endif +%}
           {% endfor %}
           {% else %}
-            Rocklin Hub 1: <span style="color: red">N/A</span><br />
+              Rocklin Hub Router 1: <span style="color: red">N/A</span><br />
           {% endif %}
           {% if rkat1_hub_2_sessions.json.data | default("") %}
-            Rocklin Hub 2:<br />
+              Rocklin Hub Router 2:<br />
           {% for s in rkat1_hub_2_sessions.json.data %}
-              {{ s["local-color"] | title }}: {% if s.state == "up" %}Up<br />{% else %}<span style="color: red">{{ s.state | title }}</span><br />{% endif +%}
+                {{ s["local-color"] | title }}: {% if s.state == "up" %}Up<br />{% else %}<span style="color: red">{{ s.state | title }}</span><br />{% endif +%}
           {% endfor %}
           {% else %}
-            Rocklin Hub 2: <span style="color: red">N/A</span><br />
+              Rocklin Hub Router 2: <span style="color: red">N/A</span><br />
+          {% endif %}
+          {% if tloc_stats.json.data | default("") %}
+            TLOC Stats (Past Hour):<br />
+          {% set remote_colors =  [ "biz-internet", "private1", "private2" ] %}
+          {% set properties =  [ "Jitter", "Latency", "Loss_Percentage", "vQoE_Score" ] %}
+          {% for c in remote_colors %}
+              {{ c | title }}:<br />
+          {% for p in properties %}
+          {% set stats =  tloc_stats.json.data | selectattr("remote_color", "equalto", c) | map(attribute=p | lower) | list %}
+          {% set stats_mean = "%.2f" | format(stats | sum / stats | length) %}
+          {% if p == "vQoE_Score" and stats_mean | int <= 5 %}
+                {{ p | replace("_", " ") }}: <span style="color: red">{{ stats_mean }}</span><br />
+          {% else %}
+                {{ p | replace("_", " ") }}: {{ stats_mean }}<br />
+          {% endif %}
+          {% endfor %}
+          {% endfor %}
+          {% else %}
+            TLOC Stats (Past Hour): <span style="color: red">N/A</span><br />
           {% endif %}
           {% endif %}
           {% if mist_store %}

@@ -60,30 +60,45 @@ Broadband Tunnel: N/A
 {% endif %}
 {% endif %}
 {% if sdwan_store %}
-SD-WAN Tunnels:
+Cisco SD-WAN:
+  Tunnel Status:
 {% if asbc1_hub_1_sessions.json.data | default("") %}
-  Ashburn Hub 1:
+    Ashburn Hub Router:
 {% for s in asbc1_hub_1_sessions.json.data %}
-    {{ s["local-color"] | title }}: {{ s.state | title }}
+      {{ s["local-color"] | title }}: {{ s.state | title }}
 {% endfor %}
 {% else %}
-  Ashburn Hub 1: N/A
+    Ashburn Hub Router: N/A
 {% endif %}
 {% if rkat1_hub_1_sessions.json.data | default("") %}
-  Rocklin Hub 1:
+    Rocklin Hub Router 1:
 {% for s in rkat1_hub_1_sessions.json.data %}
-    {{ s["local-color"] | title }}: {{ s.state | title }}
+      {{ s["local-color"] | title }}: {{ s.state | title }}
 {% endfor %}
 {% else %}
-  Rocklin Hub 1: N/A
+    Rocklin Hub Router 1: N/A
 {% endif %}
 {% if rkat1_hub_2_sessions.json.data | default("") %}
-  Rocklin Hub 2:
+    Rocklin Hub Router 2:
 {% for s in rkat1_hub_2_sessions.json.data %}
-    {{ s["local-color"] | title }}: {{ s.state | title }}
+      {{ s["local-color"] | title }}: {{ s.state | title }}
 {% endfor %}
 {% else %}
-  Rocklin Hub 2: N/A
+    Rocklin Hub Router 2: N/A
+{% endif %}
+{% if tloc_stats.json.data | default("") %}
+  TLOC Stats (Past Hour):
+{% set remote_colors =  [ "biz-internet", "private1", "private2" ] %}
+{% set properties =  [ "Jitter", "Latency", "Loss_Percentage", "vQoE_Score" ] %}
+{% for c in remote_colors %}
+    {{ c | title }}:
+{% for p in properties %}
+{% set stats =  tloc_stats.json.data | selectattr("remote_color", "equalto", c) | map(attribute=p | lower) | list %}
+      {{ p | replace("_", " ") }}: {{ "%.2f" | format(stats | sum / stats | length) }}
+{% endfor %}
+{% endfor %}
+{% else %}
+    TLOC Stats (Past Hour): N/A
 {% endif %}
 {% endif %}
 {% if mist_store %}
@@ -277,7 +292,7 @@ N/A
 
 
 {% if sdwan_store %}
-##### SD-WAN: Rocklin Hub 1 BFD Sessions
+##### vManage: Rocklin Hub Router 1 BFD Sessions
 
 {% if rkat1_hub_1_sessions.json.data | default("") %}
 {{ rkat1_hub_1_sessions.json.data | ansible.builtin.to_nice_json }}
@@ -286,7 +301,7 @@ N/A
 {% endif %}
 
 
-##### SD-WAN: Rocklin Hub 2 BFD Sessions
+##### vManage: Rocklin Hub Router 2 BFD Sessions
 
 {% if rkat1_hub_2_sessions.json.data | default("") %}
 {{ rkat1_hub_2_sessions.json.data | ansible.builtin.to_nice_json }}
@@ -295,10 +310,19 @@ N/A
 {% endif %}
 
 
-##### SD-WAN: Ashburn Hub 1 BFD Sessions
+##### vManage: Ashburn Hub Router BFD Sessions
 
 {% if asbc1_hub_1_sessions.json.data | default("") %}
 {{ asbc1_hub_1_sessions.json.data | ansible.builtin.to_nice_json }}
+{% else %}
+N/A
+{% endif %}
+
+
+##### vManage: TLOC Statistics
+
+{% if tloc_stats.json.data | default("") %}
+{{ tloc_stats.json.data | ansible.builtin.to_nice_json }}
 {% else %}
 N/A
 {% endif %}

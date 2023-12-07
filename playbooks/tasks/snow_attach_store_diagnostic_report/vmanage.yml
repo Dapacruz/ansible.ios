@@ -1,5 +1,5 @@
 ---
-- name: SD-WAN | Fetch authentication cookie
+- name: vManage | Fetch authentication cookie
   ansible.builtin.uri:
     url: https://{{ vmanage_host }}:{{ vmanage_port }}/j_security_check
     method: POST
@@ -13,7 +13,7 @@
   when: sdwan_store
   ignore_errors: true
 
-- name: SD-WAN | Fetch cross-site request forgery prevention token
+- name: vManage | Fetch cross-site request forgery prevention token
   ansible.builtin.uri:
     url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/client/token
     method: GET
@@ -27,7 +27,7 @@
   when: sdwan_store
   ignore_errors: true
 
-- name: SD-WAN | Fetch Rocklin hub 1 BFD sessions
+- name: vManage | Fetch Rocklin hub router 1 BFD sessions
   ansible.builtin.uri:
     url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/device/bfd/sessions?deviceId={{ vmanage_device_ids.rkat1_hub_1 }}&site-id={{ store_number | int }}
     method: GET
@@ -42,7 +42,7 @@
   when: sdwan_store
   ignore_errors: true
 
-- name: SD-WAN | Fetch Rocklin hub 2 BFD sessions
+- name: vManage | Fetch Rocklin hub router 2 BFD sessions
   ansible.builtin.uri:
     url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/device/bfd/sessions?deviceId={{ vmanage_device_ids.rkat1_hub_2 }}&site-id={{ store_number | int }}
     method: GET
@@ -57,7 +57,7 @@
   when: sdwan_store
   ignore_errors: true
 
-- name: SD-WAN | Fetch Ashburn hub 1 BFD sessions
+- name: vManage | Fetch Ashburn hub router BFD sessions
   ansible.builtin.uri:
     url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/device/bfd/sessions?deviceId={{ vmanage_device_ids.asbc1_hub_1 }}&site-id={{ store_number | int }}
     method: GET
@@ -69,5 +69,85 @@
     return_content: true
     validate_certs: false
   register: asbc1_hub_1_sessions
+  when: sdwan_store
+  ignore_errors: true
+
+- name: vManage | Set vmanage_local_system_ip fact
+  ansible.builtin.set_fact:
+    vmanage_local_system_ip: "{{ rkat1_hub_1_sessions.json.data[0]['system-ip'] }}"
+  ignore_errors: true
+
+- name: vManage | Fetch TLOC Statistics
+  ansible.builtin.uri:
+    url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/statistics/approute
+    method: POST
+    headers:
+      Content-Type: application/json
+      Cookie: "{{ vmanage_cookie.cookies_string }}"
+      X-XSRF-TOKEN: "{{ vmanage_token.content }}"
+    body_format: json
+    body: |
+      {
+        "query": {
+          "condition": "AND",
+          "rules": [
+            {
+              "value": [
+                  "1"
+              ],
+              "field": "entry_time",
+              "type": "date",
+              "operator": "last_n_hours"
+            },
+            {
+              "value": [
+                  "{{ vmanage_local_system_ip }}"
+              ],
+              "field": "local_system_ip",
+              "type": "string",
+              "operator": "in"
+            },
+            {
+              "value": [
+                  "{{ vmanage_device_ids.rkat1_hub_1 }}",
+                  "{{ vmanage_device_ids.rkat1_hub_2 }}"
+              ],
+              "field": "remote_system_ip",
+              "type": "string",
+              "operator": "in"
+            }
+          ]
+        },
+        "aggregation": {
+          "field": [
+              {
+                  "property": "name",
+                  "sequence": 1
+              }
+          ],
+          "metrics": [
+            {
+                "property": "loss_percentage",
+                "type": "avg"
+            },
+            {
+                "property": "vqoe_score",
+                "type": "avg"
+            },
+            {
+                "property": "latency",
+                "type": "avg"
+            },
+            {
+                "property": "jitter",
+                "type": "avg"
+            }
+          ]
+        }
+      }
+    status_code: 200
+    return_content: true
+    validate_certs: false
+  register: tloc_stats
   when: sdwan_store
   ignore_errors: true
