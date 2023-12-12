@@ -166,7 +166,7 @@
                 {{ c.ip }}:<br />
           {% endif %}
                   RSSI: {{ c.rssi }}<br />
-                  SNR: {{ c.snr }}<br />
+                  RSSI: {% if c.rssi | int <= 70 %}{{ c.rssi }}{% else %}<span style="color: red">{{ c.rssi }}</span>{% endif %}<br />
                   SNR: {% if c.snr | int > 25 %}{{ c.snr }}{% else %}<span style="color: red">{{ c.snr }}</span>{% endif %}<br />
                   SSID: {{ c.ssid }}<br />
                   Channel: {{ c.channel }}<br />
