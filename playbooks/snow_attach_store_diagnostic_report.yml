@@ -17,20 +17,20 @@
         - tasks/snow_attach_store_diagnostic_report/mist.yml
 
   post_tasks:
-    - name: Render diagnostic report
-      ansible.builtin.template:
-        src: templates/snow_attach_store_diagnostic_report.j2
-        dest: "{{ output_dir }}/{{ snow_incident | lower }}_store_diagnostic_report_{{ timestamp }}.txt"
+    # - name: Render diagnostic report
+    #   ansible.builtin.template:
+    #     src: templates/snow_attach_store_diagnostic_report.j2
+    #     dest: "{{ output_dir }}/{{ snow_incident | lower }}_store_diagnostic_report_{{ timestamp }}.txt"
 
-    - name: Attach diagnostic report to incident
-      servicenow.itsm.incident:
-        instance:
-          host: "{{ snow_instance }}"
-          username: "{{ snow_username }}"
-          password: "{{ snow_password }}"
-        number: "{{ snow_incident }}"
-        attachments:
-          - path: "{{ output_dir }}/{{ snow_incident | lower }}_store_diagnostic_report_{{ timestamp }}.txt"
+    # - name: Attach diagnostic report to incident
+    #   servicenow.itsm.incident:
+    #     instance:
+    #       host: "{{ snow_instance }}"
+    #       username: "{{ snow_username }}"
+    #       password: "{{ snow_password }}"
+    #     number: "{{ snow_incident }}"
+    #     attachments:
+    #       - path: "{{ output_dir }}/{{ snow_incident | lower }}_store_diagnostic_report_{{ timestamp }}.txt"
 
     - name: Set work_notes fact
       ansible.builtin.set_fact:
@@ -155,9 +155,9 @@
           {% if mist_client_stats.json | default("") %}
           {% set rssi =  mist_client_stats.json | map(attribute='rssi') | sort %}
             RSSI:<br />
-              Best: {{ rssi[-1] }}<br />
-              Worst: {{ rssi[0] }}<br />
-              Median: {{ rssi[rssi | length // 2] }}<br />
+              Best: {% if rssi[-1] | int > -70 %}{{ rssi[-1] }}{% else %}<span style="color: red">{{ rssi[-1] }}</span>{% endif %}<br />
+              Worst: {% if rssi[0] | int > -70 %}{{ rssi[0] }}{% else %}<span style="color: red">{{ rssi[0] }}</span>{% endif %}<br />
+              Median: {% if rssi[rssi | length // 2] | int > -70 %}{{ rssi[rssi | length // 2] }}{% else %}<span style="color: red">{{ rssi[rssi | length // 2] }}</span>{% endif %}<br />
               Top 5 Worst:<br />
           {% for c in (mist_client_stats.json | sort(attribute="rssi"))[:5] %}
           {% if c.hostname | default("") and c.hostname | default("") != "\"\"" %}
@@ -165,7 +165,6 @@
           {% else %}
                 {{ c.ip }}:<br />
           {% endif %}
-                  RSSI: {{ c.rssi }}<br />
                   RSSI: {% if c.rssi | int > -70 %}{{ c.rssi }}{% else %}<span style="color: red">{{ c.rssi }}</span>{% endif %}<br />
                   SNR: {% if c.snr | int > 25 %}{{ c.snr }}{% else %}<span style="color: red">{{ c.snr }}</span>{% endif %}<br />
                   SSID: {{ c.ssid }}<br />
@@ -252,15 +251,15 @@
             Sacramento: <span style="color: red">N/A</span><br />
           {% endif %}
 
-    - name: Update incident work notes
-      servicenow.itsm.incident:
-        instance:
-          host: "{{ snow_instance }}"
-          username: "{{ snow_username }}"
-          password: "{{ snow_password }}"
-        number: "{{ snow_incident }}"
-        other:
-          work_notes: |
-            [code]<h3>Store Analysis</h3><pre style="background-color: transparent; border-width: 0">[/code]
-            [code]{{ work_notes }}[/code]
-            [code]</pre>[/code]
+    # - name: Update incident work notes
+    #   servicenow.itsm.incident:
+    #     instance:
+    #       host: "{{ snow_instance }}"
+    #       username: "{{ snow_username }}"
+    #       password: "{{ snow_password }}"
+    #     number: "{{ snow_incident }}"
+    #     other:
+    #       work_notes: |
+    #         [code]<h3>Store Analysis</h3><pre style="background-color: transparent; border-width: 0">[/code]
+    #         [code]{{ work_notes }}[/code]
+    #         [code]</pre>[/code]
