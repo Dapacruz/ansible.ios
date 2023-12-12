@@ -167,6 +167,7 @@
           {% endif %}
                   RSSI: {{ c.rssi }}<br />
                   SNR: {{ c.snr }}<br />
+                  SNR: {% if c.snr | int > 25 %}{{ c.snr }}{% else %}<span style="color: red">{{ c.snr }}</span>{% endif %}<br />
                   SSID: {{ c.ssid }}<br />
                   Channel: {{ c.channel }}<br />
                   MAC Address: {{ c.mac }}<br />
