@@ -119,6 +119,10 @@ Mist Wireless:
       Enabled: {% if wlan.enabled %}Yes{% else %}No{% endif +%}
       Connected Clients: {{ mist_client_stats.json | selectattr('ssid', 'match', wlan.ssid) | length }}
 {% endfor %}
+{% else %}
+  SSIDs: N/A
+{% endif %}
+{% if mist_client_stats.json | default("") %}
 {% set rssi =  mist_client_stats.json | map(attribute='rssi') | sort %}
   RSSI:
     Best: {{ rssi[-1] }}
@@ -139,7 +143,6 @@ Mist Wireless:
         Username: {{ c.username | default("") }}
 {% endfor %}
 {% else %}
-  SSIDs: N/A
   RSSI: N/A
 {% endif %}
 {% endif %}

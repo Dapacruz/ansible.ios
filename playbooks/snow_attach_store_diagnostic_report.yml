@@ -149,6 +149,10 @@
                 Enabled: {% if wlan.enabled %}Yes{% else %}No{% endif %}<br />
                 Connected Clients: {{ mist_client_stats.json | selectattr('ssid', 'match', wlan.ssid) | length }}<br />
           {% endfor %}
+          {% else %}
+            SSIDs: <span style="color: red">N/A</span><br />
+          {% endif %}
+          {% if mist_client_stats.json | default("") %}
           {% set rssi =  mist_client_stats.json | map(attribute='rssi') | sort %}
             RSSI:<br />
               Best: {{ rssi[-1] }}<br />
@@ -169,7 +173,6 @@
                   Username: {{ c.username | default("") }}<br />
           {% endfor %}
           {% else %}
-            SSIDs: <span style="color: red">N/A</span><br />
             RSSI: <span style="color: red">N/A</span><br />
           {% endif %}
           {% endif %}
