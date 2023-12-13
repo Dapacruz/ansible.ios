@@ -19,44 +19,44 @@ Store Switch:
 {% if store_switch_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) %}
   Pingable: Yes
 {% else %}
-  Pingable: No
+  Pingable: No 🔴
 {% endif %}
 {% else %}
-  Pingable: N/A
+  Pingable: N/A 🔴
 {% endif %}
 {% if not store_switch_uptime.stderr | default("failed") %}
   Uptime: {{ store_switch_uptime.stdout_lines[5] | regex_replace("^.+uptime is ", "") }}
 {% else %}
-  Uptime: N/A
+  Uptime: N/A 🔴
 {% endif %}
 Store Router:
 {% if not store_router_ping.stderr | default("failed") %}
 {% if store_router_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) %}
   Pingable: Yes
 {% else %}
-  Pingable: No
+  Pingable: No 🔴
 {% endif %}
 {% else %}
-  Pingable: N/A
+  Pingable: N/A 🔴
 {% endif %}
 {% if not store_subnet_lookup.stderr | default("failed") %}
 {% if store_subnet_lookup.stdout_lines[5] | regex_search(store_subnet, multiline=False, ignorecase=False) %}
 MPLS Path: Up
 {% else %}
-MPLS Path: Down
+MPLS Path: Down 🔴
 {% endif %}
 {% else %}
-MPLS Path: N/A
+MPLS Path: N/A 🔴
 {% endif %}
 {% if not sdwan_store %}
 {% if not store_bb_tunnel_status.stderr | default("failed") %}
 {% if store_bb_tunnel_status.stdout | regex_search("prefixes\s[1-9]\d*\s*$", multiline=True, ignorecase=False) %}
 Broadband Tunnel: Up
 {% else %}
-Broadband Tunnel: Down
+Broadband Tunnel: Down 🔴
 {% endif %}
 {% else %}
-Broadband Tunnel: N/A
+Broadband Tunnel: N/A 🔴
 {% endif %}
 {% endif %}
 {% if sdwan_store %}
@@ -65,26 +65,26 @@ Cisco SD-WAN:
 {% if asbc1_hub_1_sessions.json.data | default("") %}
     Ashburn Hub Router:
 {% for s in asbc1_hub_1_sessions.json.data %}
-      {{ s["local-color"] | title }}: {{ s.state | title }}
+      {{ s["local-color"] | title }}: {% if s.state == "up" %}Up{% else %}{{ s.state | title }} 🔴{% endif +%}
 {% endfor %}
 {% else %}
-    Ashburn Hub Router: N/A
+    Ashburn Hub Router: N/A 🔴
 {% endif %}
 {% if rkat1_hub_1_sessions.json.data | default("") %}
     Rocklin Hub Router 1:
 {% for s in rkat1_hub_1_sessions.json.data %}
-      {{ s["local-color"] | title }}: {{ s.state | title }}
+      {{ s["local-color"] | title }}: {% if s.state == "up" %}Up{% else %}{{ s.state | title }} 🔴{% endif +%}
 {% endfor %}
 {% else %}
-    Rocklin Hub Router 1: N/A
+    Rocklin Hub Router 1: N/A 🔴
 {% endif %}
 {% if rkat1_hub_2_sessions.json.data | default("") %}
     Rocklin Hub Router 2:
 {% for s in rkat1_hub_2_sessions.json.data %}
-      {{ s["local-color"] | title }}: {{ s.state | title }}
+      {{ s["local-color"] | title }}: {% if s.state == "up" %}Up{% else %}{{ s.state | title }} 🔴{% endif +%}
 {% endfor %}
 {% else %}
-    Rocklin Hub Router 2: N/A
+    Rocklin Hub Router 2: N/A 🔴
 {% endif %}
 {% if tloc_stats.json.data | default("") %}
   TLOC Stats (Past Hour):
@@ -94,23 +94,32 @@ Cisco SD-WAN:
     {{ c | title }}:
 {% for p in properties %}
 {% set stats =  tloc_stats.json.data | selectattr("remote_color", "equalto", c) | map(attribute=p | lower) | list %}
-      {{ p | replace("_", " ") }}: {{ "%.2f" | format(stats | sum / stats | length) }}
+{% set stats_mean = "%.2f" | format(stats | sum / stats | length) %}
+{% if p == "vQoE_Score" and stats_mean | int <= 5 %}
+    {{ p | replace("_", " ") }}: {{ stats_mean }} 🔴
+{% else %}
+    {{ p | replace("_", " ") }}: {{ stats_mean }}
+{% endif %}
 {% endfor %}
 {% endfor %}
 {% else %}
-    TLOC Stats (Past Hour): N/A
+    TLOC Stats (Past Hour): N/A 🔴
 {% endif %}
 {% endif %}
 {% if mist_store %}
 Mist Wireless:
 {% if mist_site_stats.json | default("") %}
   Site: {{ mist_site_stats.json.name }}
+{% if mist_site_stats.json.num_ap_connected == mist_site_stats.json.num_ap %}
   Connected APs: {{ mist_site_stats.json.num_ap_connected }}/{{ mist_site_stats.json.num_ap }}
+{% else %}
+  Connected APs: {{ mist_site_stats.json.num_ap_connected }}/{{ mist_site_stats.json.num_ap }} 🔴
+{% endif %}
   Connected Clients: {{ mist_site_stats.json.num_clients }}
 {% else %}
-  Site: N/A
-  Connected APs: N/A
-  Connected Clients: N/A
+  Site: N/A 🔴
+  Connected APs: N/A 🔴
+  Connected Clients: N/A 🔴
 {% endif %}
 {% if mist_wlans.json | default("") %}
   SSIDs:
@@ -120,14 +129,14 @@ Mist Wireless:
       Connected Clients: {{ mist_client_stats.json | selectattr('ssid', 'match', wlan.ssid) | length }}
 {% endfor %}
 {% else %}
-  SSIDs: N/A
+  SSIDs: N/A 🔴
 {% endif %}
 {% if mist_client_stats.json | default("") %}
 {% set rssi =  mist_client_stats.json | map(attribute='rssi') | sort %}
   RSSI:
-    Best: {{ rssi[-1] }}
-    Worst: {{ rssi[0] }}
-    Median: {{ rssi[rssi | length // 2] }}
+    Best: {% if rssi[-1] | int > -70 %}{{ rssi[-1] }}{% else %}{{ rssi[-1] }} 🔴{% endif +%}
+    Worst: {% if rssi[0] | int > -70 %}{{ rssi[0] }}{% else %}{{ rssi[0] }} 🔴{% endif +%}
+    Median: {% if rssi[rssi | length // 2] | int > -70 %}{{ rssi[rssi | length // 2] }}{% else %}{{ rssi[rssi | length // 2] }} 🔴{% endif +%}
     Top 5 Worst:
 {% for c in (mist_client_stats.json | sort(attribute="rssi"))[:5] %}
 {% if c.hostname | default("") and c.hostname | default("") != "\"\"" %}
@@ -135,25 +144,25 @@ Mist Wireless:
 {% else %}
       {{ c.ip }}:
 {% endif %}
-        RSSI: {{ c.rssi }}
-        SNR: {{ c.snr }}
+        RSSI: {% if c.rssi | int > -70 %}{{ c.rssi }}{% else %}{{ c.rssi }} 🔴{% endif +%}
+        SNR: {% if c.snr | int > 25 %}{{ c.snr }}{% else %}{{ c.snr }} 🔴{% endif +%}
         SSID: {{ c.ssid }}
         Channel: {{ c.channel }}
         MAC Address: {{ c.mac }}
         Username: {{ c.username | default("") }}
 {% endfor %}
 {% else %}
-  RSSI: N/A
+  RSSI: N/A 🔴
 {% endif %}
 {% endif %}
 {% if not store_internet_egress.stderr | default("failed") %}
 {% if store_internet_egress.stdout | regex_search("8.8.8.8.+msec", multiline=True, ignorecase=False) or store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
 Internet Reachable: Yes
 {% else %}
-Internet Reachable: No
+Internet Reachable: No 🔴
 {% endif %}
 {% else %}
-Internet Reachable: N/A
+Internet Reachable: N/A 🔴
 {% endif %}
 {% if not store_internet_egress.stderr | default("failed") %}
 {% if store_internet_egress.stdout | regex_search("asgi1", multiline=True, ignorecase=False) %}
@@ -163,62 +172,62 @@ Internet Egress: Rocklin
 {% elif store_internet_egress.stdout | regex_search("sast1", multiline=True, ignorecase=False)  %}
 Internet Egress: Sacramento
 {% else %}
-Internet Egress: Unknown
+Internet Egress: Unknown 🔴
 {% endif %}
 {% else %}
-Internet Egress: N/A
+Internet Egress: N/A 🔴
 {% endif %}
 {% if not store_switch_dns_test.stderr | default("failed") %}
 {% if store_switch_dns_test.stdout | regex_search("Translating.+domain\sserver\s\(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\)\s\[OK\]", multiline=True, ignorecase=False) %}
 DNS Resolution Functional: Yes
 {% else %}
-DNS Resolution Functional: No
+DNS Resolution Functional: No 🔴
 {% endif %}
 {% else %}
-DNS Resolution Functional: N/A
+DNS Resolution Functional: N/A 🔴
 {% endif %}
 {% if not store_switch_connect_ws_site.stderr | default("failed") %}
 {% if store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
 Williams Sonoma Site (williams-sonoma.com) Reachable: Yes
 {% else %}
-Williams Sonoma Site (williams-sonoma.com) Reachable: No
+Williams Sonoma Site (williams-sonoma.com) Reachable: No 🔴
 {% endif %}
 {% else %}
-Williams Sonoma Site (williams-sonoma.com) Reachable: N/A
+Williams Sonoma Site (williams-sonoma.com) Reachable: N/A 🔴
 {% endif %}
 {% if not store_switch_connect_storesweb.stderr | default("failed") %}
 {% if store_switch_connect_storesweb.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
 Store Wide Web Site ({{ storesweb_fqdn }} ) Reachable: Yes
 {% else %}
-Store Wide Web Site ({{ storesweb_fqdn }} ) Reachable: No
+Store Wide Web Site ({{ storesweb_fqdn }} ) Reachable: No 🔴
 {% endif %}
 {% else %}
-Store Wide Web Site ({{ storesweb_fqdn }} ) Reachable: N/A
+Store Wide Web Site ({{ storesweb_fqdn }} ) Reachable: N/A 🔴
 {% endif %}
 {% if not store_switch_connect_verifone.stderr | default("failed") %}
 {% if store_switch_connect_verifone.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
 Verifone API (api.vfipayna.com) Reachable: Yes
 {% else %}
-Verifone API (api.vfipayna.com) Reachable: No
+Verifone API (api.vfipayna.com) Reachable: No 🔴
 {% endif %}
 {% else %}
-Verifone API (api.vfipayna.com) Reachable: N/A
+Verifone API (api.vfipayna.com) Reachable: N/A 🔴
 {% endif %}
 Verifone active firewall sessions:
 {% if not active_verifone_sessions_ashburn.stderr | default("failed") %}
   Ashburn: {{ active_verifone_sessions_ashburn.stdout_lines | length - 1 }}
 {% else %}
-  Ashburn: N/A
+  Ashburn: N/A 🔴
 {% endif %}
 {% if not active_verifone_sessions_rocklin.stderr | default("failed") %}
   Rocklin: {{ active_verifone_sessions_rocklin.stdout_lines | length - 1 }}
 {% else %}
-  Rocklin: N/A
+  Rocklin: N/A 🔴
 {% endif %}
 {% if not active_verifone_sessions_sacramento.stderr | default("failed") %}
   Sacramento: {{ active_verifone_sessions_sacramento.stdout_lines | length - 1 }}
 {% else %}
-  Sacramento: N/A
+  Sacramento: N/A 🔴
 {% endif %}
 
 
