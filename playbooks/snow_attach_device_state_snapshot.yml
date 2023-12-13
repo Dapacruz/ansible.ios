@@ -4,7 +4,7 @@
   connection: local
   gather_facts: false
   roles:
-    - output
+    - Output
 
   tasks:
     - name: Include IOS Tasks
