@@ -25,7 +25,7 @@
 #     subnet_host_range_regex: "{{ subnet_host_range_regex.stdout }}"
 
 - name: Corp Partner Connections
-  ansible.builtin.shell: "{{ playbook_dir }}/library/go/panos-cli firewall run commands --no-config --insecure --timeout 60 --user {{ panos_user }} --password {{ panos_ssh_pass }} --command 'show session all filter state active destination {{ service.ip }} count yes' {{ firewalls.sast1_corp_edge }} {{ firewalls.asbc1_corp_edge }} {{ firewalls.rkat1_corp_edge }} | egrep 'fw0|^Number'"
+  ansible.builtin.shell: "{{ playbook_dir }}/library/go/panos-cli firewall run commands --no-config --insecure --expect-timeout 60 --user {{ panos_user }} --password {{ panos_ssh_pass }} --command 'show session all filter state active destination {{ service.ip }} count yes' {{ firewalls.sast1_corp_edge }} {{ firewalls.asbc1_corp_edge }} {{ firewalls.rkat1_corp_edge }} | egrep 'fw0|^Number'"
   register: results
   changed_when: false
   delegate_to: localhost

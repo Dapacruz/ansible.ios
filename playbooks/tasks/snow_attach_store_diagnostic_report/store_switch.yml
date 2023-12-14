@@ -12,7 +12,7 @@
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure
-      --timeout 60
+      --expect-timeout 60
       --command "show running-config | include ip name-server 10.10.10.10"
       {{ store_switch }}
   register: name_server
@@ -23,7 +23,7 @@
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure
-      --timeout 60
+      --expect-timeout 60
       --command "show running-config | include no ip domain-lookup"
       {{ store_switch }}
   register: domain_lookup
@@ -34,7 +34,7 @@
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure
-      --timeout 60
+      --expect-timeout 60
       --command "configure terminal"
       --command "ip name-server 10.10.10.10"
       --command "ip domain-lookup"
@@ -48,7 +48,7 @@
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure
-      --timeout 60
+      --expect-timeout 60
       --command "show version | include uptime"
       {{ store_switch }}
   register: store_switch_uptime
@@ -59,7 +59,7 @@
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure
-      --timeout 60
+      --expect-timeout 60
       --command "traceroute 8.8.8.8"
       {{ store_switch }}
   register: store_internet_egress
@@ -70,7 +70,7 @@
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure
-      --timeout 60
+      --expect-timeout 60
       --command "ping {{ verifone_fqdn }} repeat 1"
       {{ store_switch }}
   register: store_switch_dns_test
@@ -86,7 +86,7 @@
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure
-      --timeout 60
+      --expect-timeout 60
       --command "connect www.williams-sonoma.com 443"
       {{ store_switch }}
   register: store_switch_connect_ws_site
@@ -97,7 +97,7 @@
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure
-      --timeout 60
+      --expect-timeout 60
       --command "connect {{ storesweb_fqdn }} 443"
       {{ store_switch }}
   register: store_switch_connect_storesweb
@@ -108,7 +108,7 @@
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure
-      --timeout 60
+      --expect-timeout 60
       --command "connect {{ verifone_fqdn }} 443"
       {{ store_switch }}
   register: store_switch_connect_verifone

@@ -12,7 +12,7 @@
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure
-      --timeout 60
+      --expect-timeout 60
       --command "show ip route | include {{ store_subnet }}"
       {{ rocklin_mpls_router }}
   register: store_subnet_lookup
@@ -23,7 +23,7 @@
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure
-      --timeout 60
+      --expect-timeout 60
       --command "show ip bgp neighbors {{ store_bb_tun1 }} routes | include ^Total .+[1-9][0-9]* *$"
       {{ rocklin_mpls_router }}
   register: store_bb_tunnel_status
@@ -35,7 +35,7 @@
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure
-      --timeout 60
+      --expect-timeout 60
       --command "show ip bgp summary | count [^0-9]$"
       {{ rocklin_mpls_router }}
   register: store_vpn_down_count
@@ -47,7 +47,7 @@
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure
-      --timeout 60
+      --expect-timeout 60
       --command "ping {{ store_router }}"
       {{ rocklin_mpls_router }}
   register: store_router_ping
@@ -58,7 +58,7 @@
   ansible.builtin.command: >
     {{ playbook_dir }}/library/go/ios-cli device run commands
       --insecure
-      --timeout 60
+      --expect-timeout 60
       --command "ping {{ store_switch }}"
       {{ rocklin_mpls_router }}
   register: store_switch_ping
