@@ -96,9 +96,9 @@ Cisco SD-WAN:
 {% set stats =  tloc_stats.json.data | selectattr("remote_color", "equalto", c) | map(attribute=p | lower) | list %}
 {% set stats_mean = "%.2f" | format(stats | sum / stats | length) %}
 {% if p == "vQoE_Score" and stats_mean | int <= 5 %}
-    {{ p | replace("_", " ") }}: {{ stats_mean }} 🔴
+      {{ p | replace("_", " ") }}: {{ stats_mean }} 🔴
 {% else %}
-    {{ p | replace("_", " ") }}: {{ stats_mean }}
+      {{ p | replace("_", " ") }}: {{ stats_mean }}
 {% endif %}
 {% endfor %}
 {% endfor %}
