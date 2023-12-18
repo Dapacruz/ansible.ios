@@ -119,12 +119,12 @@
           {% if stats_count > 0 %}
           {% set stats_mean = "%.2f" | format(stats | sum / stats_count) %}
           {% if p == "vQoE_Score" and stats_mean | int <= 5 %}
-                {{ p | replace("_", " ") }}: {{ stats_mean }} 🔴
+                {{ p | replace("_", " ") }}: {{ stats_mean }} 🔴<br />
           {% else %}
-                {{ p | replace("_", " ") }}: {{ stats_mean }}
+                {{ p | replace("_", " ") }}: {{ stats_mean }}<br />
           {% endif %}
           {% else %}
-                {{ p | replace("_", " ") }}: N/A 🔴
+                {{ p | replace("_", " ") }}: N/A 🔴<br />
           {% endif %}
           {% endfor %}
           {% endfor %}
