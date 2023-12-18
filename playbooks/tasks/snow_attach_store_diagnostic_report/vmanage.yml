@@ -75,6 +75,7 @@
 - name: vManage | Set vmanage_local_system_ip fact
   ansible.builtin.set_fact:
     vmanage_local_system_ip: "{{ rkat1_hub_1_sessions.json.data[0]['system-ip'] }}"
+  when: sdwan_store
   ignore_errors: true
 
 - name: vManage | Fetch TLOC Statistics
