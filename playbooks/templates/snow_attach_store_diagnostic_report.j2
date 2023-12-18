@@ -94,11 +94,16 @@ Cisco SD-WAN:
     {{ c | title }}:
 {% for p in properties %}
 {% set stats =  tloc_stats.json.data | selectattr("remote_color", "equalto", c) | map(attribute=p | lower) | list %}
-{% set stats_mean = "%.2f" | format(stats | sum / stats | length) %}
+{% set stats_count = stats | length %}
+{% if stats_count > 0 %}
+{% set stats_mean = "%.2f" | format(stats | sum / stats_count) %}
 {% if p == "vQoE_Score" and stats_mean | int <= 5 %}
       {{ p | replace("_", " ") }}: {{ stats_mean }} 🔴
 {% else %}
       {{ p | replace("_", " ") }}: {{ stats_mean }}
+{% endif %}
+{% else %}
+      {{ p | replace("_", " ") }}: N/A 🔴
 {% endif %}
 {% endfor %}
 {% endfor %}
@@ -140,9 +145,9 @@ Mist Wireless:
     Top 5 Worst:
 {% for c in (mist_client_stats.json | sort(attribute="rssi"))[:5] %}
 {% if c.hostname | default("") and c.hostname | default("") != "\"\"" %}
-      {{ c.ip }} ({{ c.hostname }}):
+      {{ c.ip | default("0.0.0.0") }} ({{ c.hostname }}):
 {% else %}
-      {{ c.ip }}:
+      {{ c.ip | default("0.0.0.0") }}:
 {% endif %}
         RSSI: {% if c.rssi | int > -70 %}{{ c.rssi }}{% else %}{{ c.rssi }} 🔴{% endif +%}
         SNR: {% if c.snr | int > 25 %}{{ c.snr }}{% else %}{{ c.snr }} 🔴{% endif +%}
