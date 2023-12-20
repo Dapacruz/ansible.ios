@@ -80,6 +80,80 @@
           Broadband Tunnel: N/A 🔴<br />
           {% endif %}
           {% endif %}
+          {% if not store_internet_egress.stderr | default("failed") %}
+          {% if store_internet_egress.stdout | regex_search("8.8.8.8.+msec", multiline=True, ignorecase=False) or store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
+          Internet Reachable: Yes<br />
+          {% else %}
+          Internet Reachable: No 🔴<br />
+          {% endif %}
+          {% else %}
+          Internet Reachable: N/A 🔴<br />
+          {% endif %}
+          {% if not store_internet_egress.stderr | default("failed") %}
+          {% if store_internet_egress.stdout | regex_search("asgi1", multiline=True, ignorecase=False) %}
+          Internet Egress: Ashburn<br />
+          {% elif store_internet_egress.stdout | regex_search("rkat1", multiline=True, ignorecase=False)  %}
+          Internet Egress: Rocklin<br />
+          {% elif store_internet_egress.stdout | regex_search("sast1", multiline=True, ignorecase=False)  %}
+          Internet Egress: Sacramento<br />
+          {% else %}
+          Internet Egress: Unknown 🔴<br />
+          {% endif %}
+          {% else %}
+          Internet Egress: N/A 🔴<br />
+          {% endif %}
+          {% if not store_switch_dns_test.stderr | default("failed") %}
+          {% if store_switch_dns_test.stdout | regex_search("Translating.+domain\sserver\s\(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\)\s\[OK\]", multiline=True, ignorecase=False) %}
+          DNS Resolution Functional: Yes<br />
+          {% else %}
+          DNS Resolution Functional: No 🔴<br />
+          {% endif %}
+          {% else %}
+          DNS Resolution Functional: N/A 🔴<br />
+          {% endif %}
+          {% if not store_switch_connect_ws_site.stderr | default("failed") %}
+          {% if store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
+          Williams Sonoma Site (williams-sonoma.com) Reachable: Yes<br />
+          {% else %}
+          Williams Sonoma Site (williams-sonoma.com) Reachable: No 🔴<br />
+          {% endif %}
+          {% else %}
+          Williams Sonoma Site (williams-sonoma.com) Reachable: N/A 🔴<br />
+          {% endif %}
+          {% if not store_switch_connect_storesweb.stderr | default("failed") %}
+          {% if store_switch_connect_storesweb.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
+          Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: Yes<br />
+          {% else %}
+          Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: No 🔴<br />
+          {% endif %}
+          {% else %}
+          Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: N/A 🔴<br />
+          {% endif %}
+          {% if not store_switch_connect_verifone.stderr | default("failed") %}
+          {% if store_switch_connect_verifone.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
+          Verifone API (api.vfipayna.com) Reachable: Yes<br />
+          {% else %}
+          Verifone API (api.vfipayna.com) Reachable: No 🔴<br />
+          {% endif %}
+          {% else %}
+          Verifone API (api.vfipayna.com) Reachable: N/A 🔴<br />
+          {% endif %}
+          Verifone active firewall sessions:<br />
+          {% if not active_verifone_sessions_ashburn.stderr | default("failed") %}
+            Ashburn: {{ active_verifone_sessions_ashburn.stdout_lines | length - 1 }}<br />
+          {% else %}
+            Ashburn: N/A 🔴<br />
+          {% endif %}
+          {% if not active_verifone_sessions_rocklin.stderr | default("failed") %}
+            Rocklin: {{ active_verifone_sessions_rocklin.stdout_lines | length - 1 }}<br />
+          {% else %}
+            Rocklin: N/A 🔴<br />
+          {% endif %}
+          {% if not active_verifone_sessions_sacramento.stderr | default("failed") %}
+            Sacramento: {{ active_verifone_sessions_sacramento.stdout_lines | length - 1 }}<br />
+          {% else %}
+            Sacramento: N/A 🔴<br />
+          {% endif %}
           {% if sdwan_store %}
           Cisco SD-WAN:<br />
             Tunnel Status:<br />
@@ -180,80 +254,6 @@
           {% else %}
             RSSI: N/A 🔴<br />
           {% endif %}
-          {% endif %}
-          {% if not store_internet_egress.stderr | default("failed") %}
-          {% if store_internet_egress.stdout | regex_search("8.8.8.8.+msec", multiline=True, ignorecase=False) or store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
-          Internet Reachable: Yes<br />
-          {% else %}
-          Internet Reachable: No 🔴<br />
-          {% endif %}
-          {% else %}
-          Internet Reachable: N/A 🔴<br />
-          {% endif %}
-          {% if not store_internet_egress.stderr | default("failed") %}
-          {% if store_internet_egress.stdout | regex_search("asgi1", multiline=True, ignorecase=False) %}
-          Internet Egress: Ashburn<br />
-          {% elif store_internet_egress.stdout | regex_search("rkat1", multiline=True, ignorecase=False)  %}
-          Internet Egress: Rocklin<br />
-          {% elif store_internet_egress.stdout | regex_search("sast1", multiline=True, ignorecase=False)  %}
-          Internet Egress: Sacramento<br />
-          {% else %}
-          Internet Egress: Unknown 🔴<br />
-          {% endif %}
-          {% else %}
-          Internet Egress: N/A 🔴<br />
-          {% endif %}
-          {% if not store_switch_dns_test.stderr | default("failed") %}
-          {% if store_switch_dns_test.stdout | regex_search("Translating.+domain\sserver\s\(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\)\s\[OK\]", multiline=True, ignorecase=False) %}
-          DNS Resolution Functional: Yes<br />
-          {% else %}
-          DNS Resolution Functional: No 🔴<br />
-          {% endif %}
-          {% else %}
-          DNS Resolution Functional: N/A 🔴<br />
-          {% endif %}
-          {% if not store_switch_connect_ws_site.stderr | default("failed") %}
-          {% if store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
-          Williams Sonoma Site (williams-sonoma.com) Reachable: Yes<br />
-          {% else %}
-          Williams Sonoma Site (williams-sonoma.com) Reachable: No 🔴<br />
-          {% endif %}
-          {% else %}
-          Williams Sonoma Site (williams-sonoma.com) Reachable: N/A 🔴<br />
-          {% endif %}
-          {% if not store_switch_connect_storesweb.stderr | default("failed") %}
-          {% if store_switch_connect_storesweb.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
-          Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: Yes<br />
-          {% else %}
-          Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: No 🔴<br />
-          {% endif %}
-          {% else %}
-          Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: N/A 🔴<br />
-          {% endif %}
-          {% if not store_switch_connect_verifone.stderr | default("failed") %}
-          {% if store_switch_connect_verifone.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
-          Verifone API (api.vfipayna.com) Reachable: Yes<br />
-          {% else %}
-          Verifone API (api.vfipayna.com) Reachable: No 🔴<br />
-          {% endif %}
-          {% else %}
-          Verifone API (api.vfipayna.com) Reachable: N/A 🔴<br />
-          {% endif %}
-          Verifone active firewall sessions:<br />
-          {% if not active_verifone_sessions_ashburn.stderr | default("failed") %}
-            Ashburn: {{ active_verifone_sessions_ashburn.stdout_lines | length - 1 }}<br />
-          {% else %}
-            Ashburn: N/A 🔴<br />
-          {% endif %}
-          {% if not active_verifone_sessions_rocklin.stderr | default("failed") %}
-            Rocklin: {{ active_verifone_sessions_rocklin.stdout_lines | length - 1 }}<br />
-          {% else %}
-            Rocklin: N/A 🔴<br />
-          {% endif %}
-          {% if not active_verifone_sessions_sacramento.stderr | default("failed") %}
-            Sacramento: {{ active_verifone_sessions_sacramento.stdout_lines | length - 1 }}<br />
-          {% else %}
-            Sacramento: N/A 🔴<br />
           {% endif %}
 
     - name: Update incident work notes
