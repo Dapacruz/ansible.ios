@@ -318,13 +318,13 @@
           <br />
           <h3>Recommended Next Steps</h3><pre style="background-color: transparent; border-width: 0">
           {% if (sdwan_store and
-                (sessions.private.count == sessions.private.down or
-                sessions.internet.count == sessions.internet.down)) %}
+                (sessions.private.count > 0 and sessions.private.count == sessions.private.down or
+                sessions.internet.count > 0 and sessions.internet.count == sessions.internet.down)) %}
           {% if sdwan_store %}
-          {% if sessions.private.count == sessions.private.down %}
+          {% if sessions.private.count > 0 and sessions.private.count == sessions.private.down %}
           ⏺ All SD-WAN private tunnels are down, confirm that a Verizon support case was auto created and update the incident with the details<br />
           {% endif %}
-          {% if sessions.internet.count == sessions.internet.down %}
+          {% if sessions.internet.count > 0 and sessions.internet.count == sessions.internet.down %}
           ⏺ All SD-WAN internet tunnels are down, open a ticket with Granite and update the incident with the details<br />
           {% endif %}
           {% if issue.found %}
