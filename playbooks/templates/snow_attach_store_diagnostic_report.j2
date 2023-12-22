@@ -17,13 +17,15 @@ Mist Wireless: {% if mist_store %}Yes{% else %}No{% endif +%}
 
 Store Switch:
 {% if not store_switch_ping.stderr | default("failed") %}
-{% if store_switch_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) %}
+{% set store_switch_pingable = true if store_switch_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) else false %}
+{% if store_switch_pingable %}
   Pingable: Yes
 {% else %}
 {% set issue.found = true %}
   Pingable: No 🔴
 {% endif %}
 {% else %}
+{% set store_switch_pingable = false %}
 {% set issue.found = true %}
   Pingable: N/A 🔴
 {% endif %}
@@ -35,13 +37,15 @@ Store Switch:
 {% endif %}
 Store Router:
 {% if not store_router_ping.stderr | default("failed") %}
-{% if store_router_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) %}
+{% set store_router_pingable = true if store_switch_uptime.stdout_lines[5] | regex_replace("^.+uptime is ", "") else false %}
+{% if store_router_pingable %}
   Pingable: Yes
 {% else %}
 {% set issue.found = true %}
   Pingable: No 🔴
 {% endif %}
 {% else %}
+{% set store_router_pingable = false %}
 {% set issue.found = true %}
   Pingable: N/A 🔴
 {% endif %}
@@ -58,16 +62,20 @@ MPLS Path: N/A 🔴
 {% endif %}
 {% if not sdwan_store %}
 {% if not store_bb_tunnel_status.stderr | default("failed") %}
-{% if store_bb_tunnel_status.stdout | regex_search("prefixes\s[1-9]\d*\s*$", multiline=True, ignorecase=False) %}
+{% set bb_tunnel_up = true if store_bb_tunnel_status.stdout | regex_search("prefixes\s[1-9]\d*\s*$", multiline=True, ignorecase=False) else false %}
+{% if bb_tunnel_up %}
 Broadband Tunnel: Up
 {% else %}
 {% set issue.found = true %}
 Broadband Tunnel: Down 🔴
 {% endif %}
 {% else %}
+{% set bb_tunnel_up = false %}
 {% set issue.found = true %}
 Broadband Tunnel: N/A 🔴
 {% endif %}
+{% else %}
+{% set bb_tunnel_up = false %}
 {% endif %}
 {% if not store_internet_egress.stderr | default("failed") %}
 {% if store_internet_egress.stdout | regex_search("8.8.8.8.+msec", multiline=True, ignorecase=False) or store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
@@ -298,23 +306,42 @@ Mist Wireless:
 
 ##### Recommended Next Steps ##############################
 
-{% if (sdwan_store and
-      (sessions.private.count > 0 and sessions.private.count == sessions.private.down or
-      sessions.internet.count > 0 and sessions.internet.count == sessions.internet.down)) %}
-{% if sdwan_store %}
-{% if sessions.private.count > 0 and sessions.private.count == sessions.private.down %}
+{% set sdwan_private_down = true if sdwan_store and
+                                        (sessions.private.count > 0 and
+                                        sessions.private.count == sessions.private.down) else false %}
+{% set sdwan_internet_down = true if sdwan_store and
+                                        (sessions.internet.count > 0 and
+                                        sessions.internet.count == sessions.internet.down) else false %}
+{% set store_reachable = true if store_switch_pingable and store_router_pingable else false %}
+{% if not store_reachable or
+        sdwan_private_down or
+        sdwan_internet_down or
+        not bb_tunnel_up %}
+{# Specific recommendations #}
+{# Store connectivity #}
+{% if not store_reachable %}
+{# If the store router and switch are not pingable #}
+⏺ Store is not reachable, call the store MOD to verify power
+{% elif sdwan_store %}
+{% if sdwan_private_down %}
 ⏺ All SD-WAN private tunnels are down, confirm that a Verizon support case was auto created and update the incident with the details
 {% endif %}
-{% if sessions.internet.count > 0 and sessions.internet.count == sessions.internet.down %}
+{% if sdwan_internet_down %}
 ⏺ All SD-WAN internet tunnels are down, open a ticket with Granite and update the incident with the details
 {% endif %}
-{% if issue.found %}
-⏺ Review the issues in the above Store Analysis section
-{% endif %}
-{% endif %}
-{% elif issue.found %}
-⏺ Review the issues in the above Store Analysis section
 {% else %}
+{% if not bb_tunnel_up %}
+{# Else if no SD-WAN and broadband tunnel is down #}
+⏺ Broadband tunnel is down, open a ticket with Granite and update the incident with the details
+{% endif %}
+{% endif %}
+{# General recommendation #}
+⏺ Review all issues in the above Store Analysis section
+{% elif issue.found %}
+{# General recommendation when an issue is detected #}
+⏺ Review all issues in the above Store Analysis section
+{% else %}
+{# Default recommendation #}
 ⏺ Look for latency issues in this diagnostic report
 {% endif %}
 
