@@ -37,7 +37,7 @@ Store Switch:
 {% endif %}
 Store Router:
 {% if not store_router_ping.stderr | default("failed") %}
-{% set store_router_pingable = true if store_switch_uptime.stdout_lines[5] | regex_replace("^.+uptime is ", "") else false %}
+{% set store_router_pingable = true if store_router_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) else false %}
 {% if store_router_pingable %}
   Pingable: Yes
 {% else %}
