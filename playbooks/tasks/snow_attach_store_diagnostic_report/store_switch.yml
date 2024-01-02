@@ -79,8 +79,7 @@
 
 - name: Store Switch | Set verifone_ip fact
   ansible.builtin.set_fact:
-    verifone_ip: "{{ store_switch_dns_test.stdout_lines[8] | regex_search('\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}', multiline=True, ignorecase=False) }}"
-  when: store_switch_dns_test.stdout_lines[8] | default("")
+    verifone_ip: "{{ store_switch_dns_test.stdout | default('') | regex_search('(?<=ICMP Echos to )\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}', multiline=False, ignorecase=False) }}"
 
 - name: Store Switch | Connect to Williams Sonoma site
   ansible.builtin.command: >

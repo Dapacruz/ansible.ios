@@ -6,6 +6,7 @@
       apikey: "{{ panw_api_token }}"
       user: "{{ panw_user }}"
       password: "{{ panw_password }}"
+  when: verifone_ip
   no_log: true
 
 - name: Firewall | Fetch Ashburn active Verifone sessions
@@ -13,7 +14,7 @@
   register: active_verifone_sessions_ashburn
   changed_when: false
   failed_when: active_verifone_sessions_ashburn.rc != 0 and active_verifone_sessions_ashburn.rc != 1
-  when: verifone_ip | default("")
+  when: verifone_ip
   ignore_errors: true
 
 - name: Firewall | Fetch Rocklin active Verifone sessions
@@ -21,7 +22,7 @@
   register: active_verifone_sessions_rocklin
   changed_when: false
   failed_when: active_verifone_sessions_rocklin.rc != 0 and active_verifone_sessions_rocklin.rc != 1
-  when: verifone_ip | default("")
+  when: verifone_ip
   ignore_errors: true
 
 - name: Firewall | Fetch Sacramento active Verifone sessions
@@ -29,5 +30,5 @@
   register: active_verifone_sessions_sacramento
   changed_when: false
   failed_when: active_verifone_sessions_sacramento.rc != 0 and active_verifone_sessions_sacramento.rc != 1
-  when: verifone_ip | default("")
+  when: verifone_ip
   ignore_errors: true

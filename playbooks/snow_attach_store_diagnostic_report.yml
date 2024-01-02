@@ -22,15 +22,15 @@
         src: templates/snow_attach_store_diagnostic_report.j2
         dest: "{{ output_dir }}/{{ snow_incident | lower }}_store_diagnostic_report_{{ timestamp }}.txt"
 
-    - name: Attach diagnostic report to incident
-      servicenow.itsm.incident:
-        instance:
-          host: "{{ snow_instance }}"
-          username: "{{ snow_username }}"
-          password: "{{ snow_password }}"
-        number: "{{ snow_incident }}"
-        attachments:
-          - path: "{{ output_dir }}/{{ snow_incident | lower }}_store_diagnostic_report_{{ timestamp }}.txt"
+    # - name: Attach diagnostic report to incident
+    #   servicenow.itsm.incident:
+    #     instance:
+    #       host: "{{ snow_instance }}"
+    #       username: "{{ snow_username }}"
+    #       password: "{{ snow_password }}"
+    #     number: "{{ snow_incident }}"
+    #     attachments:
+    #       - path: "{{ output_dir }}/{{ snow_incident | lower }}_store_diagnostic_report_{{ timestamp }}.txt"
 
     - name: Set work_notes fact
       ansible.builtin.set_fact:
@@ -364,15 +364,15 @@
           ⏺ Look for latency issues in the attached diagnostic report<br />
           {% endif %}
 
-    - name: Update incident work notes
-      servicenow.itsm.incident:
-        instance:
-          host: "{{ snow_instance }}"
-          username: "{{ snow_username }}"
-          password: "{{ snow_password }}"
-        number: "{{ snow_incident }}"
-        other:
-          work_notes: |
-            [code]<h3>Store Analysis</h3><pre style="background-color: transparent; border-width: 0">[/code]
-            [code]{{ work_notes }}[/code]
-            [code]</pre>[/code]
+    # - name: Update incident work notes
+    #   servicenow.itsm.incident:
+    #     instance:
+    #       host: "{{ snow_instance }}"
+    #       username: "{{ snow_username }}"
+    #       password: "{{ snow_password }}"
+    #     number: "{{ snow_incident }}"
+    #     other:
+    #       work_notes: |
+    #         [code]<h3>Store Analysis</h3><pre style="background-color: transparent; border-width: 0">[/code]
+    #         [code]{{ work_notes }}[/code]
+    #         [code]</pre>[/code]
