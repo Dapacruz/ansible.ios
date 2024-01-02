@@ -95,8 +95,6 @@
           {% set issue.found = true %}
           Broadband Tunnel: N/A 🔴<br />
           {% endif %}
-          {% else %}
-          {% set bb_tunnel_up = false %}
           {% endif %}
           {% if not store_internet_egress.stderr | default("failed") %}
           {% if store_internet_egress.stdout | regex_search("8.8.8.8.+msec", multiline=True, ignorecase=False) or store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
@@ -335,7 +333,7 @@
           {% if not store_reachable or
                   sdwan_private_down or
                   sdwan_internet_down or
-                  not bb_tunnel_up %}
+                  (not sdwan_store and not bb_tunnel_up) %}
           {# Specific recommendations #}
           {# Store connectivity #}
           {% if not store_reachable %}
