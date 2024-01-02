@@ -35,6 +35,7 @@
     - name: Set work_notes fact
       ansible.builtin.set_fact:
         work_notes: |
+          <h3>Store Analysis</h3>
           {% set issue = namespace(found = false) %}
           Store Switch:<br />
           {% if not store_switch_ping.stderr | default("failed") %}
@@ -322,7 +323,7 @@
           {% endif %}
           {% endif %}
           <br />
-          <h3>Recommended Next Steps</h3><pre style="background-color: transparent; border-width: 0">
+          <h3>Recommended Next Steps</h3>
           {% set sdwan_private_down = true if sdwan_store and
                                                   (sessions.private.count > 0 and
                                                   sessions.private.count == sessions.private.down) else false %}
@@ -371,6 +372,6 @@
         number: "{{ snow_incident }}"
         other:
           work_notes: |
-            [code]<h3>Store Analysis</h3><pre style="background-color: transparent; border-width: 0">[/code]
+            [code]<pre style="background-color: transparent; border-width: 0">[/code]
             [code]{{ work_notes }}[/code]
             [code]</pre>[/code]
