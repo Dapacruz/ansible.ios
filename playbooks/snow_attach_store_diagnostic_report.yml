@@ -39,7 +39,7 @@
           {% set issue = namespace(found = false) %}
           Store Switch:<br />
           {% if not store_switch_ping.stderr | default("failed") %}
-          {% set store_switch_pingable = true if store_switch_ping.stdout | regex_search("Success rate is [1-9]", multiline=False, ignorecase=False) else false %}
+          {% set store_switch_pingable = true if store_switch_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) else false %}
           {% if store_switch_pingable %}
             Pingable: Yes<br />
           {% else %}
@@ -59,7 +59,7 @@
           {% endif %}
           Store Router:<br />
           {% if not store_router_ping.stderr | default("failed") %}
-          {% set store_router_pingable = true if store_router_ping.stdout | regex_search("Success rate is [1-9]", multiline=False, ignorecase=False) else false %}
+          {% set store_router_pingable = true if store_router_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) else false %}
           {% if store_router_pingable %}
             Pingable: Yes<br />
           {% else %}
@@ -72,7 +72,7 @@
             Pingable: N/A 🔴<br />
           {% endif %}
           {% if not store_subnet_lookup.stderr | default("failed") %}
-          {% if store_subnet_lookup.stdout_lines[5] | regex_search(store_subnet, multiline=False, ignorecase=False) %}
+          {% if store_subnet_lookup.stdout_lines[5] | regex_search(store_subnet, multiline=True, ignorecase=False) %}
           MPLS Path: Up<br />
           {% else %}
           {% set issue.found = true %}
@@ -84,7 +84,7 @@
           {% endif %}
           {% if not sdwan_store %}
           {% if not store_bb_tunnel_status.stderr | default("failed") %}
-          {% set bb_tunnel_up = true if store_bb_tunnel_status.stdout | regex_search("prefixes\s[1-9]\d*\s*$", multiline=False, ignorecase=False) else false %}
+          {% set bb_tunnel_up = true if store_bb_tunnel_status.stdout | regex_search("prefixes\s[1-9]\d*\s*$", multiline=True, ignorecase=False) else false %}
           {% if bb_tunnel_up %}
           Broadband Tunnel: Up<br />
           {% else %}
@@ -98,7 +98,7 @@
           {% endif %}
           {% endif %}
           {% if not store_internet_egress.stderr | default("failed") %}
-          {% if store_internet_egress.stdout | regex_search("8.8.8.8.+msec", multiline=False, ignorecase=False) or store_switch_connect_ws_site.stdout | regex_search("Open", multiline=False, ignorecase=False) %}
+          {% if store_internet_egress.stdout | regex_search("8.8.8.8.+msec", multiline=True, ignorecase=False) or store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
           Internet Reachable: Yes<br />
           {% else %}
           {% set issue.found = true %}
@@ -109,11 +109,11 @@
           Internet Reachable: N/A 🔴<br />
           {% endif %}
           {% if not store_internet_egress.stderr | default("failed") %}
-          {% if store_internet_egress.stdout | regex_search("asgi1", multiline=False, ignorecase=False) %}
+          {% if store_internet_egress.stdout | regex_search("asgi1", multiline=True, ignorecase=False) %}
           Internet Egress: Ashburn<br />
-          {% elif store_internet_egress.stdout | regex_search("rkat1", multiline=False, ignorecase=False)  %}
+          {% elif store_internet_egress.stdout | regex_search("rkat1", multiline=True, ignorecase=False)  %}
           Internet Egress: Rocklin<br />
-          {% elif store_internet_egress.stdout | regex_search("sast1", multiline=False, ignorecase=False)  %}
+          {% elif store_internet_egress.stdout | regex_search("sast1", multiline=True, ignorecase=False)  %}
           Internet Egress: Sacramento<br />
           {% else %}
           {% set issue.found = true %}
@@ -124,7 +124,7 @@
           Internet Egress: N/A 🔴<br />
           {% endif %}
           {% if not store_switch_dns_test.stderr | default("failed") %}
-          {% if store_switch_dns_test.stdout | regex_search("Translating.+domain\sserver\s\(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\)\s\[OK\]", multiline=False, ignorecase=False) %}
+          {% if store_switch_dns_test.stdout | regex_search("Translating.+domain\sserver\s\(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\)\s\[OK\]", multiline=True, ignorecase=False) %}
           DNS Resolution Functional: Yes<br />
           {% else %}
           {% set issue.found = true %}
@@ -135,7 +135,7 @@
           DNS Resolution Functional: N/A 🔴<br />
           {% endif %}
           {% if not store_switch_connect_ws_site.stderr | default("failed") %}
-          {% if store_switch_connect_ws_site.stdout | regex_search("Open", multiline=False, ignorecase=False) %}
+          {% if store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
           Williams Sonoma Site (williams-sonoma.com) Reachable: Yes<br />
           {% else %}
           {% set issue.found = true %}
@@ -146,7 +146,7 @@
           Williams Sonoma Site (williams-sonoma.com) Reachable: N/A 🔴<br />
           {% endif %}
           {% if not store_switch_connect_storesweb.stderr | default("failed") %}
-          {% if store_switch_connect_storesweb.stdout | regex_search("Open", multiline=False, ignorecase=False) %}
+          {% if store_switch_connect_storesweb.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
           Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: Yes<br />
           {% else %}
           {% set issue.found = true %}
@@ -157,7 +157,7 @@
           Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: N/A 🔴<br />
           {% endif %}
           {% if not store_switch_connect_verifone.stderr | default("failed") %}
-          {% if store_switch_connect_verifone.stdout | regex_search("Open", multiline=False, ignorecase=False) %}
+          {% if store_switch_connect_verifone.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
           Verifone API (api.vfipayna.com) Reachable: Yes<br />
           {% else %}
           {% set issue.found = true %}
