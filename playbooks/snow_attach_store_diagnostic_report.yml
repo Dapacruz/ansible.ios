@@ -36,6 +36,7 @@
       ansible.builtin.set_fact:
         work_notes: |
           <h3>Store Analysis</h3>
+          <pre style="background-color: transparent; border-width: 0">
           {% set issue = namespace(found = false) %}
           Store Switch:<br />
           {% if not store_switch_ping.stderr | default("failed") %}
@@ -323,7 +324,9 @@
           {% endif %}
           {% endif %}
           <br />
+          </pre>
           <h3>Recommended Next Steps</h3>
+          <pre style="background-color: transparent; border-width: 0">
           {% set sdwan_private_down = true if sdwan_store and
                                                   (sessions.private.count > 0 and
                                                   sessions.private.count == sessions.private.down) else false %}
@@ -362,6 +365,7 @@
           {# Default recommendation #}
           ⏺ Look for latency issues in the attached diagnostic report<br />
           {% endif %}
+          </pre>
 
     - name: Update incident work notes
       servicenow.itsm.incident:
@@ -371,7 +375,4 @@
           password: "{{ snow_password }}"
         number: "{{ snow_incident }}"
         other:
-          work_notes: |
-            [code]<pre style="background-color: transparent; border-width: 0">[/code]
-            [code]{{ work_notes }}[/code]
-            [code]</pre>[/code]
+          work_notes: "[code]{{ work_notes }}[/code]"
