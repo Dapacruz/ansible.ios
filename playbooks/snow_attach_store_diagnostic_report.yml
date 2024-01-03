@@ -73,7 +73,8 @@
             Pingable: N/A 🔴<br />
           {% endif %}
           {% if not store_subnet_lookup.stderr | default("failed") %}
-          {% if store_subnet_lookup.stdout_lines[5] | regex_search(store_subnet, multiline=True, ignorecase=False) %}
+          {% set mpls_path_up = store_subnet_lookup.stdout_lines[5] | regex_search(store_subnet, multiline=True, ignorecase=False) %}
+          {% if mpls_path_up %}
           MPLS Path: Up<br />
           {% else %}
           {% set issue.found = true %}
@@ -81,6 +82,7 @@
           {% endif %}
           {% else %}
           {% set issue.found = true %}
+          {% set mpls_path_up = "unknown" %}
           MPLS Path: N/A 🔴<br />
           {% endif %}
           {% if not sdwan_store %}
@@ -93,13 +95,14 @@
           Broadband Tunnel: Down 🔴<br />
           {% endif %}
           {% else %}
-          {% set bb_tunnel_up = false %}
           {% set issue.found = true %}
+          {% set bb_tunnel_up = "unknown" %}
           Broadband Tunnel: N/A 🔴<br />
           {% endif %}
           {% endif %}
           {% if not store_internet_egress.stderr | default("failed") %}
-          {% if store_internet_egress.stdout | regex_search("8.8.8.8.+msec", multiline=True, ignorecase=False) or store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
+          {% set internet_reachable = store_internet_egress.stdout | regex_search("8.8.8.8.+msec", multiline=True, ignorecase=False) or store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
+          {% if internet_reachable %}
           Internet Reachable: Yes<br />
           {% else %}
           {% set issue.found = true %}
@@ -107,6 +110,7 @@
           {% endif %}
           {% else %}
           {% set issue.found = true %}
+          {% set internet_reachable = "unknown" %}
           Internet Reachable: N/A 🔴<br />
           {% endif %}
           {% if not store_internet_egress.stderr | default("failed") %}
@@ -147,7 +151,8 @@
           Williams Sonoma Site (williams-sonoma.com) Reachable: N/A 🔴<br />
           {% endif %}
           {% if not store_switch_connect_storesweb.stderr | default("failed") %}
-          {% if store_switch_connect_storesweb.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
+          {% set store_wide_web_reachable = store_switch_connect_storesweb.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
+          {% if store_wide_web_reachable %}
           Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: Yes<br />
           {% else %}
           {% set issue.found = true %}
@@ -155,6 +160,7 @@
           {% endif %}
           {% else %}
           {% set issue.found = true %}
+          {% set store_wide_web_reachable = "unknown" %}
           Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: N/A 🔴<br />
           {% endif %}
           {% if not store_switch_connect_verifone.stderr | default("failed") %}
@@ -188,20 +194,20 @@
             Sacramento: N/A 🔴<br />
           {% endif %}
           {% if sdwan_store %}
-          {% set sessions = { "private": { "count": 0, "down": 0 }, "internet": { "count": 0, "down": 0 } } %}
+          {% set sdwan_sessions = { "private": { "count": 0, "down": 0 }, "internet": { "count": 0, "down": 0 } } %}
           Cisco SD-WAN:<br />
             Tunnel Status:<br />
           {% if asbc1_hub_1_sessions.json.data | default("") %}
               Ashburn Hub Router:<br />
           {% for s in asbc1_hub_1_sessions.json.data %}
           {% set session_type = s["local-color"] | regex_replace("(\d$)|(^biz-)", "") %}
-          {% if sessions[session_type].update({ "count": sessions[session_type]["count"] + 1 })  %}{% endif %}
+          {% if sdwan_sessions[session_type].update({ "count": sdwan_sessions[session_type]["count"] + 1 })  %}{% endif %}
           {% if s.state == "up" %}
                 {{ s["local-color"] | title }}: Up<br />
           {% else %}
           {% set issue.found = true %}
                 {{ s["local-color"] | title }}: Down 🔴<br />
-          {% if sessions[session_type].update({ s.state: sessions[session_type][s.state] + 1 })  %}{% endif %}
+          {% if sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}{% endif %}
           {% endif %}
           {% endfor %}
           {% else %}
@@ -212,13 +218,13 @@
               Rocklin Hub Router 1:<br />
           {% for s in rkat1_hub_1_sessions.json.data %}
           {% set session_type = s["local-color"] | regex_replace("(\d$)|(^biz-)", "") %}
-          {% if sessions[session_type].update({ "count": sessions[session_type]["count"] + 1 })  %}{% endif %}
+          {% if sdwan_sessions[session_type].update({ "count": sdwan_sessions[session_type]["count"] + 1 })  %}{% endif %}
           {% if s.state == "up" %}
                 {{ s["local-color"] | title }}: Up<br />
           {% else %}
           {% set issue.found = true %}
                 {{ s["local-color"] | title }}: Down 🔴<br />
-          {% if sessions[session_type].update({ s.state: sessions[session_type][s.state] + 1 })  %}{% endif %}
+          {% if sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}{% endif %}
           {% endif %}
           {% endfor %}
           {% else %}
@@ -229,13 +235,13 @@
               Rocklin Hub Router 2:<br />
           {% for s in rkat1_hub_2_sessions.json.data %}
           {% set session_type = s["local-color"] | regex_replace("(\d$)|(^biz-)", "") %}
-          {% if sessions[session_type].update({ "count": sessions[session_type]["count"] + 1 })  %}{% endif %}
+          {% if sdwan_sessions[session_type].update({ "count": sdwan_sessions[session_type]["count"] + 1 })  %}{% endif %}
           {% if s.state == "up" %}
                 {{ s["local-color"] | title }}: Up<br />
           {% else %}
           {% set issue.found = true %}
                 {{ s["local-color"] | title }}: Down 🔴<br />
-          {% if sessions[session_type].update({ s.state: sessions[session_type][s.state] + 1 })  %}{% endif %}
+          {% if sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}{% endif %}
           {% endif %}
           {% endfor %}
           {% else %}
@@ -327,39 +333,47 @@
           </pre>
           <h3>Recommended Next Steps</h3>
           <pre style="background-color: transparent; border-width: 0">
-          {% set sdwan_private_down = true if sdwan_store and
-                                                  (sessions.private.count > 0 and
-                                                  sessions.private.count == sessions.private.down) else false %}
-          {% set sdwan_internet_down = true if sdwan_store and
-                                                  (sessions.internet.count > 0 and
-                                                  sessions.internet.count == sessions.internet.down) else false %}
-          {% set store_reachable = true if store_switch_pingable and store_router_pingable else false %}
-          {% if not store_reachable or
-                  sdwan_private_down or
-                  sdwan_internet_down or
-                  (not sdwan_store and not bb_tunnel_up) %}
+          {% set sdwan_all_private_down = true if sdwan_store and
+                                                    (sdwan_sessions.private.count > 0 and
+                                                    sdwan_sessions.private.count == sdwan_sessions.private.down) else false %}
+          {% set sdwan_all_internet_down = true if sdwan_store and
+                                                    (sdwan_sessions.internet.count > 0 and
+                                                    sdwan_sessions.internet.count == sdwan_sessions.internet.down) else false %}
+          {% set store_reachable = true if store_switch_pingable or store_router_pingable else false %}
+          {% if issue.found or
+                  sdwan_all_private_down or
+                  sdwan_all_internet_down or
+                  not store_reachable %}
           {# Specific recommendations #}
-          {# Store connectivity #}
           {% if not store_reachable %}
-          {# If the store router and switch are not pingable #}
           ⏺ Store is not reachable, call the store MOD to verify power<br />
-          {% elif sdwan_store %}
-          {% if sdwan_private_down %}
+          {% else %}
+          {# All other specific recommendations #}
+          {% if sdwan_all_private_down %}
           ⏺ All SD-WAN private tunnels are down, confirm that a Verizon support case was auto created and update the incident with the details<br />
           {% endif %}
-          {% if sdwan_internet_down %}
+          {% if sdwan_all_internet_down %}
           ⏺ All SD-WAN internet tunnels are down, open a ticket with Granite and update the incident with the details<br />
           {% endif %}
-          {% else %}
-          {% if not bb_tunnel_up %}
-          {# Else if no SD-WAN and broadband tunnel is down #}
+          {% if not sdwan_store and not bb_tunnel_up %}
           ⏺ Broadband tunnel is down, open a ticket with Granite and update the incident with the details<br />
+          {% endif %}
+          {% if not internet_reachable and
+                  mpls_path_up and
+                  store_router_pingable and
+                  store_switch_pingable %}
+          ⏺ Internet is not reachable, escalate to DNL3<br />
+          {% elif not internet_reachable %}
+          ⏺ Internet is not reachable, open a ticket with Granite and update the incident with the details<br />
+          {% endif %}
+          {% if not store_wide_web_reachable and
+                  mpls_path_up and
+                  store_router_pingable and
+                  store_switch_pingable %}
+          ⏺ Store Wide Web is not reachable, contact Store App Support<br />
           {% endif %}
           {% endif %}
           {# General recommendation #}
-          ⏺ Review all issues in the above Store Analysis section<br />
-          {% elif issue.found %}
-          {# General recommendation when an issue is detected #}
           ⏺ Review all issues in the above Store Analysis section<br />
           {% else %}
           {# Default recommendation #}
