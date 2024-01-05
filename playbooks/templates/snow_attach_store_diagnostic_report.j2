@@ -106,7 +106,8 @@ Internet Egress: Unknown 🔴
 Internet Egress: N/A 🔴
 {% endif %}
 {% if not store_switch_dns_test.stderr | default("failed") %}
-{% if store_switch_dns_test.stdout | regex_search("Translating.+domain\sserver\s\(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\)\s\[OK\]", multiline=True, ignorecase=False) %}
+{% set dns_resolves = store_switch_dns_test.stdout | regex_search("Translating.+domain\sserver\s\(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\)\s\[OK\]", multiline=True, ignorecase=False) %}
+{% if dns_resolves %}
 DNS Resolution Functional: Yes
 {% else %}
 {% set issue.found = true %}
@@ -114,6 +115,7 @@ DNS Resolution Functional: No 🔴
 {% endif %}
 {% else %}
 {% set issue.found = true %}
+{% set dns_resolves = "unknown" %}
 DNS Resolution Functional: N/A 🔴
 {% endif %}
 {% if not store_switch_connect_ws_site.stderr | default("failed") %}
@@ -345,6 +347,7 @@ Mist Wireless:
 {% endif %}
 {% if not store_wide_web_reachable and
         mpls_path_up and
+        dns_resolves and
         store_router_pingable and
         store_switch_pingable %}
 ⏺ Store Wide Web is not reachable, contact Store App Support
