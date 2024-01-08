@@ -53,9 +53,11 @@
             Pingable: N/A 🔴<br />
           {% endif %}
           {% if not store_switch_uptime.stderr | default("failed") %}
-            Uptime: {{ store_switch_uptime.stdout_lines[5] | regex_replace("^.+uptime is ", "") }}<br />
+          {% set switch_uptime = store_switch_uptime.stdout_lines[5] | regex_replace("^.+uptime is ", "") %}
+            Uptime: {{ switch_uptime }}<br />
           {% else %}
           {% set issue.found = true %}
+          {% set switch_uptime = "unknown" %}
             Uptime: N/A 🔴<br />
           {% endif %}
           Store Router:<br />
@@ -374,6 +376,9 @@
                   store_router_pingable and
                   store_switch_pingable %}
           ⏺ Store Wide Web is not reachable, contact Store App Support<br />
+          {% endif %}
+          {% if switch_uptime != "unknown" and not switch_uptime | regex_search("hour", multiline=False, ignorecase=False) %}
+          ⏺ Store switch uptime is less than one hour, check other device uptimes to determine if there was a storewide power outage<br />
           {% endif %}
           {% endif %}
           {# General recommendation #}
