@@ -155,7 +155,7 @@ Verifone API (api.vfipayna.com) Reachable: No 🔴
 {% set issue.found = true %}
 Verifone API (api.vfipayna.com) Reachable: N/A 🔴
 {% endif %}
-Verifone active firewall sessions:
+Verifone Active Firewall Sessions:
 {% if not active_verifone_sessions_ashburn.stderr | default("failed") %}
   Ashburn: {{ active_verifone_sessions_ashburn.stdout_lines | length - 1 }}
 {% else %}
