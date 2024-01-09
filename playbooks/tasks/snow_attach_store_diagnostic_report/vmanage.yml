@@ -1,154 +1,167 @@
 ---
-- name: vManage | Fetch authentication cookie
-  ansible.builtin.uri:
-    url: https://{{ vmanage_host }}:{{ vmanage_port }}/j_security_check
-    method: POST
-    body_format: form-urlencoded
-    body:
-      j_username: "{{ vmanage_user }}"
-      j_password: "{{ vmanage_password }}"
-    status_code: 200
-    validate_certs: false
-  register: vmanage_cookie
-  when: sdwan_store
-  ignore_errors: true
+- name: vManage | Fetch SD-WAN details
+  block:
+    - name: vManage | Fetch authentication cookie
+      ansible.builtin.uri:
+        url: https://{{ vmanage_host }}:{{ vmanage_port }}/j_security_check
+        method: POST
+        body_format: form-urlencoded
+        body:
+          j_username: "{{ vmanage_user }}"
+          j_password: "{{ vmanage_password }}"
+        status_code: 200
+        validate_certs: false
+      register: vmanage_cookie
 
-- name: vManage | Fetch cross-site request forgery prevention token
-  ansible.builtin.uri:
-    url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/client/token
-    method: GET
-    headers:
-      Content-Type: application/json
-      Cookie: "{{ vmanage_cookie.cookies_string }}"
-    status_code: 200
-    return_content: true
-    validate_certs: false
-  register: vmanage_token
-  when: sdwan_store
-  ignore_errors: true
+    - name: vManage | Fetch cross-site request forgery prevention token
+      ansible.builtin.uri:
+        url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/client/token
+        method: GET
+        headers:
+          Content-Type: application/json
+          Cookie: "{{ vmanage_cookie.cookies_string }}"
+        status_code: 200
+        return_content: true
+        validate_certs: false
+      register: vmanage_token
 
-- name: vManage | Fetch Rocklin hub router 1 BFD sessions
-  ansible.builtin.uri:
-    url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/device/bfd/sessions?deviceId={{ vmanage_device_ids.rkat1_hub_1 }}&site-id={{ store_number | int }}
-    method: GET
-    headers:
-      Content-Type: application/json
-      Cookie: "{{ vmanage_cookie.cookies_string }}"
-      X-XSRF-TOKEN: "{{ vmanage_token.content }}"
-    status_code: 200
-    return_content: true
-    validate_certs: false
-  register: rkat1_hub_1_sessions
-  when: sdwan_store
-  ignore_errors: true
+    - name: vManage | Fetch Rocklin hub router 1 BFD sessions
+      ansible.builtin.uri:
+        url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/device/bfd/sessions?deviceId={{ vmanage_device_ids.rkat1_hub_1 }}&site-id={{ store_number | int }}
+        method: GET
+        headers:
+          Content-Type: application/json
+          Cookie: "{{ vmanage_cookie.cookies_string }}"
+          X-XSRF-TOKEN: "{{ vmanage_token.content }}"
+        status_code: 200
+        return_content: true
+        validate_certs: false
+      register: rkat1_hub_1_sessions_job
+      async: 30
+      poll: 0
 
-- name: vManage | Fetch Rocklin hub router 2 BFD sessions
-  ansible.builtin.uri:
-    url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/device/bfd/sessions?deviceId={{ vmanage_device_ids.rkat1_hub_2 }}&site-id={{ store_number | int }}
-    method: GET
-    headers:
-      Content-Type: application/json
-      Cookie: "{{ vmanage_cookie.cookies_string }}"
-      X-XSRF-TOKEN: "{{ vmanage_token.content }}"
-    status_code: 200
-    return_content: true
-    validate_certs: false
-  register: rkat1_hub_2_sessions
-  when: sdwan_store
-  ignore_errors: true
+    - name: vManage | Fetch Rocklin hub router 2 BFD sessions
+      ansible.builtin.uri:
+        url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/device/bfd/sessions?deviceId={{ vmanage_device_ids.rkat1_hub_2 }}&site-id={{ store_number | int }}
+        method: GET
+        headers:
+          Content-Type: application/json
+          Cookie: "{{ vmanage_cookie.cookies_string }}"
+          X-XSRF-TOKEN: "{{ vmanage_token.content }}"
+        status_code: 200
+        return_content: true
+        validate_certs: false
+      register: rkat1_hub_2_sessions_job
+      async: 30
+      poll: 0
 
-- name: vManage | Fetch Ashburn hub router BFD sessions
-  ansible.builtin.uri:
-    url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/device/bfd/sessions?deviceId={{ vmanage_device_ids.asbc1_hub_1 }}&site-id={{ store_number | int }}
-    method: GET
-    headers:
-      Content-Type: application/json
-      Cookie: "{{ vmanage_cookie.cookies_string }}"
-      X-XSRF-TOKEN: "{{ vmanage_token.content }}"
-    status_code: 200
-    return_content: true
-    validate_certs: false
-  register: asbc1_hub_1_sessions
-  when: sdwan_store
-  ignore_errors: true
+    - name: vManage | Fetch Ashburn hub router BFD sessions
+      ansible.builtin.uri:
+        url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/device/bfd/sessions?deviceId={{ vmanage_device_ids.asbc1_hub_1 }}&site-id={{ store_number | int }}
+        method: GET
+        headers:
+          Content-Type: application/json
+          Cookie: "{{ vmanage_cookie.cookies_string }}"
+          X-XSRF-TOKEN: "{{ vmanage_token.content }}"
+        status_code: 200
+        return_content: true
+        validate_certs: false
+      register: asbc1_hub_1_sessions_job
+      async: 30
+      poll: 0
 
-- name: vManage | Set vmanage_local_system_ip fact
-  ansible.builtin.set_fact:
-    vmanage_local_system_ip: "{{ rkat1_hub_1_sessions.json.data[0]['system-ip'] }}"
-  when: sdwan_store
-  ignore_errors: true
+    - name: vManage | Wait for async jobs to finish
+      ansible.builtin.async_status:
+        jid: "{{ job.ansible_job_id }}"
+      register: jobs
+      until: jobs.finished
+      retries: 30
+      delay: 1
+      loop: "{{ [rkat1_hub_1_sessions_job, rkat1_hub_2_sessions_job, asbc1_hub_1_sessions_job] }}"
+      loop_control:
+        loop_var: job
 
-- name: vManage | Fetch TLOC Statistics
-  ansible.builtin.uri:
-    url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/statistics/approute
-    method: POST
-    headers:
-      Content-Type: application/json
-      Cookie: "{{ vmanage_cookie.cookies_string }}"
-      X-XSRF-TOKEN: "{{ vmanage_token.content }}"
-    body_format: json
-    body: |
-      {
-        "query": {
-          "condition": "AND",
-          "rules": [
-            {
-              "value": [
-                  "1"
-              ],
-              "field": "entry_time",
-              "type": "date",
-              "operator": "last_n_hours"
+    - name: vManage | Set SD-WAN facts
+      ansible.builtin.set_fact:
+        rkat1_hub_1_sessions: "{{ jobs.results[0] }}"
+        rkat1_hub_2_sessions: "{{ jobs.results[1] }}"
+        asbc1_hub_1_sessions: "{{ jobs.results[2] }}"
+
+    - name: vManage | Set vmanage_local_system_ip fact
+      ansible.builtin.set_fact:
+        vmanage_local_system_ip: "{{ rkat1_hub_1_sessions.json.data[0]['system-ip'] }}"
+
+    - name: vManage | Fetch TLOC Statistics
+      ansible.builtin.uri:
+        url: https://{{ vmanage_host }}:{{ vmanage_port }}/dataservice/statistics/approute
+        method: POST
+        headers:
+          Content-Type: application/json
+          Cookie: "{{ vmanage_cookie.cookies_string }}"
+          X-XSRF-TOKEN: "{{ vmanage_token.content }}"
+        body_format: json
+        body: |
+          {
+            "query": {
+              "condition": "AND",
+              "rules": [
+                {
+                  "value": [
+                      "1"
+                  ],
+                  "field": "entry_time",
+                  "type": "date",
+                  "operator": "last_n_hours"
+                },
+                {
+                  "value": [
+                      "{{ vmanage_local_system_ip }}"
+                  ],
+                  "field": "local_system_ip",
+                  "type": "string",
+                  "operator": "in"
+                },
+                {
+                  "value": [
+                      "{{ vmanage_device_ids.rkat1_hub_1 }}",
+                      "{{ vmanage_device_ids.rkat1_hub_2 }}"
+                  ],
+                  "field": "remote_system_ip",
+                  "type": "string",
+                  "operator": "in"
+                }
+              ]
             },
-            {
-              "value": [
-                  "{{ vmanage_local_system_ip }}"
+            "aggregation": {
+              "field": [
+                  {
+                      "property": "name",
+                      "sequence": 1
+                  }
               ],
-              "field": "local_system_ip",
-              "type": "string",
-              "operator": "in"
-            },
-            {
-              "value": [
-                  "{{ vmanage_device_ids.rkat1_hub_1 }}",
-                  "{{ vmanage_device_ids.rkat1_hub_2 }}"
-              ],
-              "field": "remote_system_ip",
-              "type": "string",
-              "operator": "in"
+              "metrics": [
+                {
+                    "property": "loss_percentage",
+                    "type": "avg"
+                },
+                {
+                    "property": "vqoe_score",
+                    "type": "avg"
+                },
+                {
+                    "property": "latency",
+                    "type": "avg"
+                },
+                {
+                    "property": "jitter",
+                    "type": "avg"
+                }
+              ]
             }
-          ]
-        },
-        "aggregation": {
-          "field": [
-              {
-                  "property": "name",
-                  "sequence": 1
-              }
-          ],
-          "metrics": [
-            {
-                "property": "loss_percentage",
-                "type": "avg"
-            },
-            {
-                "property": "vqoe_score",
-                "type": "avg"
-            },
-            {
-                "property": "latency",
-                "type": "avg"
-            },
-            {
-                "property": "jitter",
-                "type": "avg"
-            }
-          ]
-        }
-      }
-    status_code: 200
-    return_content: true
-    validate_certs: false
-  register: tloc_stats
-  when: sdwan_store
+          }
+        status_code: 200
+        return_content: true
+        validate_certs: false
+      register: tloc_stats
   ignore_errors: true
+  when: sdwan_store | default("")
