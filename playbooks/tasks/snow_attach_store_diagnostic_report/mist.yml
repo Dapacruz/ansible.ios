@@ -1,54 +1,71 @@
 ---
-- name: Mist | Fetch sites
-  ansible.builtin.uri:
-    url: "{{ mist_url }}/orgs/{{ mist_org_id }}/sites"
-    headers:
-      Content-Type: application/json
-      Authorization: Token {{ mist_api_token }}
-    method: GET
-    status_code: 200
-  register: mist_sites
-  when: mist_store
-  ignore_errors: true
+- name: Mist | Fetch wireless details
+  block:
+    - name: Mist | Fetch sites
+      ansible.builtin.uri:
+        url: "{{ mist_url }}/orgs/{{ mist_org_id }}/sites"
+        headers:
+          Content-Type: application/json
+          Authorization: Token {{ mist_api_token }}
+        method: GET
+        status_code: 200
+      register: mist_sites
 
-- name: Mist | Set mist_site_id fact
-  ansible.builtin.set_fact:
-    mist_site_id: "{{ mist_sites.json | selectattr('name', 'search', store_number + '$') | map(attribute='id') | join }}"
-  when: mist_store
-  ignore_errors: true
+    - name: Mist | Set mist_site_id fact
+      ansible.builtin.set_fact:
+        mist_site_id: "{{ mist_sites.json | selectattr('name', 'search', store_number + '$') | map(attribute='id') | join }}"
 
-- name: Mist | Fetch site stats
-  ansible.builtin.uri:
-    url: "{{ mist_url }}/sites/{{ mist_site_id }}/stats"
-    headers:
-      Content-Type: application/json
-      Authorization: Token {{ mist_api_token }}
-    method: GET
-    status_code: 200
-  register: mist_site_stats
-  when: mist_store
-  ignore_errors: true
+    - name: Mist | Fetch site stats
+      ansible.builtin.uri:
+        url: "{{ mist_url }}/sites/{{ mist_site_id }}/stats"
+        headers:
+          Content-Type: application/json
+          Authorization: Token {{ mist_api_token }}
+        method: GET
+        status_code: 200
+      register: mist_site_stats_job
+      async: 30
+      poll: 0
 
-- name: Mist | Fetch client stats
-  ansible.builtin.uri:
-    url: "{{ mist_url }}/sites/{{ mist_site_id }}/stats/clients"
-    headers:
-      Content-Type: application/json
-      Authorization: Token {{ mist_api_token }}
-    method: GET
-    status_code: 200
-  register: mist_client_stats
-  when: mist_store
-  ignore_errors: true
+    - name: Mist | Fetch client stats
+      ansible.builtin.uri:
+        url: "{{ mist_url }}/sites/{{ mist_site_id }}/stats/clients"
+        headers:
+          Content-Type: application/json
+          Authorization: Token {{ mist_api_token }}
+        method: GET
+        status_code: 200
+      register: mist_client_stats_job
+      async: 30
+      poll: 0
 
-- name: Mist | Fetch WLANs
-  ansible.builtin.uri:
-    url: "{{ mist_url }}/sites/{{ mist_site_id }}/wlans/derived"
-    headers:
-      Content-Type: application/json
-      Authorization: Token {{ mist_api_token }}
-    method: GET
-    status_code: 200
-  register: mist_wlans
-  when: mist_store
+    - name: Mist | Fetch WLANs
+      ansible.builtin.uri:
+        url: "{{ mist_url }}/sites/{{ mist_site_id }}/wlans/derived"
+        headers:
+          Content-Type: application/json
+          Authorization: Token {{ mist_api_token }}
+        method: GET
+        status_code: 200
+      register: mist_wlans_job
+      async: 30
+      poll: 0
+
+    - name: Mist | Wait for async jobs to finish
+      ansible.builtin.async_status:
+        jid: "{{ job.ansible_job_id }}"
+      register: jobs
+      until: jobs.finished
+      retries: 30
+      delay: 1
+      loop: "{{ [mist_site_stats_job, mist_client_stats_job, mist_wlans_job] }}"
+      loop_control:
+        loop_var: job
+
+    - name: Mist | Set wireless facts
+      ansible.builtin.set_fact:
+        mist_site_stats: "{{ jobs.results[0] }}"
+        mist_client_stats: "{{ jobs.results[1] }}"
+        mist_wlans: "{{ jobs.results[2] }}"
   ignore_errors: true
+  when: mist_store | default("")
