@@ -1,5 +1,5 @@
 ---
-- name: Create ios-cli configuration file
+- name: Rocklin MPLS Router | Create ios-cli configuration file
   ansible.builtin.copy:
     dest: /home/runner/.ios-cli.yml
     content: |
@@ -7,6 +7,7 @@
       user: "{{ ansible_user }}"
       password: "{{ ansible_ssh_pass }}"
   no_log: true
+  when: "'/home/runner/.ios-cli.yml' is not file"
 
 - name: Rocklin MPLS Router | Check route table for store POS subnet
   ansible.builtin.command: >
@@ -15,9 +16,11 @@
       --expect-timeout 60
       --command "show ip route | include {{ store_subnet }}"
       {{ rocklin_mpls_router }}
-  register: store_subnet_lookup
+  register: store_subnet_lookup_job
   changed_when: false
   ignore_errors: true
+  async: 60
+  poll: 0
 
 - name: Rocklin MPLS Router | Fetch store broadband VPN tunnel status
   ansible.builtin.command: >
@@ -26,10 +29,12 @@
       --expect-timeout 60
       --command "show ip bgp neighbors {{ store_bb_tun1 }} routes | include ^Total .+[1-9][0-9]* *$"
       {{ rocklin_mpls_router }}
-  register: store_bb_tunnel_status
+  register: store_bb_tunnel_status_job
   changed_when: false
-  when: not sdwan_store
   ignore_errors: true
+  async: 60
+  poll: 0
+  when: not sdwan_store
 
 - name: Rocklin MPLS Router | Fetch store broadband VPN tunnel down count
   ansible.builtin.command: >
@@ -38,10 +43,12 @@
       --expect-timeout 60
       --command "show ip bgp summary | count [^0-9]$"
       {{ rocklin_mpls_router }}
-  register: store_vpn_down_count
+  register: store_vpn_down_count_job
   changed_when: false
-  when: not sdwan_store
   ignore_errors: true
+  async: 60
+  poll: 0
+  when: not sdwan_store
 
 - name: Rocklin MPLS Router | Ping store router
   ansible.builtin.command: >
@@ -50,9 +57,11 @@
       --expect-timeout 60
       --command "ping {{ store_router }}"
       {{ rocklin_mpls_router }}
-  register: store_router_ping
+  register: store_router_ping_job
   changed_when: false
   ignore_errors: true
+  async: 60
+  poll: 0
 
 - name: Rocklin MPLS Router | Ping store switch
   ansible.builtin.command: >
@@ -61,6 +70,43 @@
       --expect-timeout 60
       --command "ping {{ store_switch }}"
       {{ rocklin_mpls_router }}
-  register: store_switch_ping
+  register: store_switch_ping_job
   changed_when: false
   ignore_errors: true
+  async: 60
+  poll: 0
+
+- name: Rocklin MPLS Router | Wait for async jobs to finish
+  ansible.builtin.async_status:
+    jid: "{{ job.ansible_job_id }}"
+  register: jobs
+  until: jobs.finished
+  retries: 60
+  delay: 1
+  loop: "{{ [store_bb_tunnel_status_job, store_vpn_down_count_job] }}"
+  loop_control:
+    loop_var: job
+  when: not sdwan_store
+
+- name: Rocklin MPLS Router | Set broadband tunnel facts
+  ansible.builtin.set_fact:
+    store_bb_tunnel_status: "{{ jobs.results[0] }}"
+    store_vpn_down_count: "{{ jobs.results[1] }}"
+  when: not sdwan_store
+
+- name: Rocklin MPLS Router | Wait for async jobs to finish
+  ansible.builtin.async_status:
+    jid: "{{ job.ansible_job_id }}"
+  register: jobs
+  until: jobs.finished
+  retries: 60
+  delay: 1
+  loop: "{{ [store_subnet_lookup_job, store_router_ping_job, store_switch_ping_job] }}"
+  loop_control:
+    loop_var: job
+
+- name: Rocklin MPLS Router | Set store facts
+  ansible.builtin.set_fact:
+    store_subnet_lookup: "{{ jobs.results[0] }}"
+    store_router_ping: "{{ jobs.results[1] }}"
+    store_switch_ping: "{{ jobs.results[2] }}"
