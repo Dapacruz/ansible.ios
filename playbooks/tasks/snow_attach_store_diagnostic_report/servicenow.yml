@@ -20,7 +20,9 @@
     password: "{{ snow_password }}"
     method: GET
     force_basic_auth: true
-  register: store_details
+  register: store_details_job
+  async: 30
+  poll: 0
 
 - name: ServiceNow | Fetch store network details
   ansible.builtin.uri:
@@ -29,7 +31,25 @@
     password: "{{ snow_password }}"
     method: GET
     force_basic_auth: true
-  register: store_network_details
+  register: store_network_details_job
+  async: 30
+  poll: 0
+
+- name: ServiceNow | Wait for async jobs to finish
+  ansible.builtin.async_status:
+    jid: "{{ job.ansible_job_id }}"
+  register: jobs
+  until: jobs.finished
+  retries: 30
+  delay: 1
+  loop: "{{ [store_details_job, store_network_details_job] }}"
+  loop_control:
+    loop_var: job
+
+- name: ServiceNow | Set store details facts
+  ansible.builtin.set_fact:
+    store_details: "{{ jobs.results[0] }}"
+    store_network_details: "{{ jobs.results[1] }}"
 
 - name: ServiceNow | Set store facts
   ansible.builtin.set_fact:
