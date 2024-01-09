@@ -1,34 +1,55 @@
 ---
-- name: Create panos-cli configuration file
-  ansible.builtin.copy:
-    dest: /home/runner/.panos-cli.yml
-    content: |
-      apikey: "{{ panw_api_token }}"
-      user: "{{ panw_user }}"
-      password: "{{ panw_password }}"
-  when: verifone_ip
-  no_log: true
+- name: Firewall | Fetch active Verifone sessions
+  block:
+    - name: Firewall | Create panos-cli configuration file
+      ansible.builtin.copy:
+        dest: /home/runner/.panos-cli.yml
+        content: |
+          apikey: "{{ panw_api_token }}"
+          user: "{{ panw_user }}"
+          password: "{{ panw_password }}"
+      no_log: true
+      when: "'/home/runner/.panos-cli.yml' is not file"
 
-- name: Firewall | Fetch Ashburn active Verifone sessions
-  ansible.builtin.shell: "{{ playbook_dir }}/library/go/panos-cli firewall run commands --insecure --expect-timeout 60 --command 'show session all filter state active destination {{ verifone_ip }} | match {{ pin_pad_subnet_host_range_regex }}' {{ firewalls.asbc1_corp_edge }} | egrep '\\*{3} show|ACTIVE'"
-  register: active_verifone_sessions_ashburn
-  changed_when: false
-  failed_when: active_verifone_sessions_ashburn.rc != 0 and active_verifone_sessions_ashburn.rc != 1
-  when: verifone_ip
-  ignore_errors: true
+    - name: Firewall | Fetch Ashburn active Verifone sessions
+      ansible.builtin.shell: "{{ playbook_dir }}/library/go/panos-cli firewall run commands --insecure --expect-timeout 60 --command 'show session all filter state active destination {{ verifone_ip }} | match {{ pin_pad_subnet_host_range_regex }}' {{ firewalls.asbc1_corp_edge }} | egrep '\\*{3} show|ACTIVE'"
+      register: active_verifone_sessions_ashburn_job
+      changed_when: false
+      ignore_errors: true
+      async: 60
+      poll: 0
 
-- name: Firewall | Fetch Rocklin active Verifone sessions
-  ansible.builtin.shell: "{{ playbook_dir }}/library/go/panos-cli firewall run commands --insecure --expect-timeout 60 --command 'show session all filter state active destination {{ verifone_ip }} | match {{ pin_pad_subnet_host_range_regex }}' {{ firewalls.rkat1_corp_edge }} | egrep '\\*{3} show|ACTIVE'"
-  register: active_verifone_sessions_rocklin
-  changed_when: false
-  failed_when: active_verifone_sessions_rocklin.rc != 0 and active_verifone_sessions_rocklin.rc != 1
-  when: verifone_ip
-  ignore_errors: true
+    - name: Firewall | Fetch Rocklin active Verifone sessions
+      ansible.builtin.shell: "{{ playbook_dir }}/library/go/panos-cli firewall run commands --insecure --expect-timeout 60 --command 'show session all filter state active destination {{ verifone_ip }} | match {{ pin_pad_subnet_host_range_regex }}' {{ firewalls.rkat1_corp_edge }} | egrep '\\*{3} show|ACTIVE'"
+      register: active_verifone_sessions_rocklin_job
+      changed_when: false
+      ignore_errors: true
+      async: 60
+      poll: 0
 
-- name: Firewall | Fetch Sacramento active Verifone sessions
-  ansible.builtin.shell: "{{ playbook_dir }}/library/go/panos-cli firewall run commands --insecure --expect-timeout 60 --command 'show session all filter state active destination {{ verifone_ip }} | match {{ pin_pad_subnet_host_range_regex }}' {{ firewalls.sast1_corp_edge }} | egrep '\\*{3} show|ACTIVE'"
-  register: active_verifone_sessions_sacramento
-  changed_when: false
-  failed_when: active_verifone_sessions_sacramento.rc != 0 and active_verifone_sessions_sacramento.rc != 1
-  when: verifone_ip
-  ignore_errors: true
+    - name: Firewall | Fetch Sacramento active Verifone sessions
+      ansible.builtin.shell: "{{ playbook_dir }}/library/go/panos-cli firewall run commands --insecure --expect-timeout 60 --command 'show session all filter state active destination {{ verifone_ip }} | match {{ pin_pad_subnet_host_range_regex }}' {{ firewalls.sast1_corp_edge }} | egrep '\\*{3} show|ACTIVE'"
+      register: active_verifone_sessions_sacramento_job
+      changed_when: false
+      ignore_errors: true
+      async: 60
+      poll: 0
+
+    - name: Firewall | Wait for async jobs to finish
+      ansible.builtin.async_status:
+        jid: "{{ job.ansible_job_id }}"
+      register: jobs
+      until: jobs.finished
+      retries: 60
+      delay: 1
+      loop: "{{ [active_verifone_sessions_ashburn_job, active_verifone_sessions_rocklin_job, active_verifone_sessions_sacramento_job] }}"
+      loop_control:
+        loop_var: job
+
+    - name: Firewall | Set Verifone session facts
+      ansible.builtin.set_fact:
+        active_verifone_sessions_ashburn: "{{ jobs.results[0] }}"
+        active_verifone_sessions_rocklin: "{{ jobs.results[1] }}"
+        active_verifone_sessions_sacramento: "{{ jobs.results[2] }}"
+      when: verifone_ip | default("")
+  when: verifone_ip | default("")
