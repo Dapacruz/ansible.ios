@@ -42,6 +42,7 @@
   until: jobs.finished
   retries: 60
   delay: 1
+  ignore_errors: true
   loop: "{{ [name_server_job, domain_lookup_job] }}"
   loop_control:
     loop_var: job
@@ -62,8 +63,8 @@
       --command "end"
       --command "copy running-config startup-config"
       {{ store_switch }}
-  when: name_server.stdout_lines[5] == "" or domain_lookup.stdout_lines[5] == "no ip domain-lookup"
   ignore_errors: true
+  when: name_server.stdout_lines[5] == "" or domain_lookup.stdout_lines[5] == "no ip domain-lookup"
 
 - name: Store Switch | Fetch switch uptime
   ansible.builtin.command: >
@@ -111,6 +112,7 @@
   until: jobs.finished
   retries: 60
   delay: 1
+  ignore_errors: true
   loop: "{{ [store_switch_uptime_job, store_internet_egress_job, store_switch_dns_test_job] }}"
   loop_control:
     loop_var: job
@@ -171,6 +173,7 @@
   until: jobs.finished
   retries: 60
   delay: 1
+  ignore_errors: true
   loop: "{{ [store_switch_connect_ws_site_job, store_switch_connect_storesweb_job, store_switch_connect_verifone_job] }}"
   loop_control:
     loop_var: job

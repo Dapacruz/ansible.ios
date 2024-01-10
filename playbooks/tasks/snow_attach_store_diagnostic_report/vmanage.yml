@@ -77,6 +77,7 @@
       until: jobs.finished
       retries: 30
       delay: 1
+      ignore_errors: true
       loop: "{{ [rkat1_hub_1_sessions_job, rkat1_hub_2_sessions_job, asbc1_hub_1_sessions_job] }}"
       loop_control:
         loop_var: job

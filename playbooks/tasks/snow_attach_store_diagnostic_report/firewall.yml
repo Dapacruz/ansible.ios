@@ -42,6 +42,7 @@
       until: jobs.finished
       retries: 60
       delay: 1
+      ignore_errors: true
       loop: "{{ [active_verifone_sessions_ashburn_job, active_verifone_sessions_rocklin_job, active_verifone_sessions_sacramento_job] }}"
       loop_control:
         loop_var: job

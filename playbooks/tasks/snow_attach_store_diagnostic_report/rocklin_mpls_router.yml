@@ -83,6 +83,7 @@
   until: jobs.finished
   retries: 60
   delay: 1
+  ignore_errors: true
   loop: "{{ [store_bb_tunnel_status_job, store_vpn_down_count_job] }}"
   loop_control:
     loop_var: job
@@ -101,6 +102,7 @@
   until: jobs.finished
   retries: 60
   delay: 1
+  ignore_errors: true
   loop: "{{ [store_subnet_lookup_job, store_router_ping_job, store_switch_ping_job] }}"
   loop_control:
     loop_var: job
