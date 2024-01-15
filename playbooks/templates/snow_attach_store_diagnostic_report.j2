@@ -1,5 +1,5 @@
 #jinja2: lstrip_blocks: True, trim_blocks: True
-{% set issue = namespace(found = false) %}
+{% set ns = namespace(issue_found = false) %}
 ##### Store Details ##############################
 
 Incident: {{ snow_incident | upper }}
@@ -21,19 +21,19 @@ Store Switch:
 {% if store_switch_pingable %}
   Pingable: Yes
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
   Pingable: No 🔴
 {% endif %}
 {% else %}
 {% set store_switch_pingable = false %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
   Pingable: N/A 🔴
 {% endif %}
 {% if not store_switch_uptime.stderr | default("failed") %}
 {% set switch_uptime = store_switch_uptime.stdout_lines[5] | regex_replace("^.+uptime is ", "") %}
   Uptime: {{ switch_uptime }}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
 {% set switch_uptime = "unknown" %}
   Uptime: N/A 🔴
 {% endif %}
@@ -43,12 +43,12 @@ Store Router:
 {% if store_router_pingable %}
   Pingable: Yes
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
   Pingable: No 🔴
 {% endif %}
 {% else %}
 {% set store_router_pingable = false %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
   Pingable: N/A 🔴
 {% endif %}
 {% if not store_subnet_lookup.stderr | default("failed") %}
@@ -56,11 +56,11 @@ Store Router:
 {% if mpls_path_up %}
 MPLS Path: Up
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
 MPLS Path: Down 🔴
 {% endif %}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
 {% set mpls_path_up = "unknown" %}
 MPLS Path: N/A 🔴
 {% endif %}
@@ -70,11 +70,11 @@ MPLS Path: N/A 🔴
 {% if bb_tunnel_up %}
 Broadband Tunnel: Up
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
 Broadband Tunnel: Down 🔴
 {% endif %}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
 {% set bb_tunnel_up = "unknown" %}
 Broadband Tunnel: N/A 🔴
 {% endif %}
@@ -84,11 +84,11 @@ Broadband Tunnel: N/A 🔴
 {% if internet_reachable %}
 Internet Reachable: Yes
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
 Internet Reachable: No 🔴
 {% endif %}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
 {% set internet_reachable = "unknown" %}
 Internet Reachable: N/A 🔴
 {% endif %}
@@ -100,11 +100,11 @@ Internet Egress: Rocklin
 {% elif store_internet_egress.stdout | regex_search("sast1", multiline=True, ignorecase=False)  %}
 Internet Egress: Sacramento
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
 Internet Egress: Unknown 🔴
 {% endif %}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
 Internet Egress: N/A 🔴
 {% endif %}
 {% if not store_switch_dns_test.stderr | default("failed") %}
@@ -112,11 +112,11 @@ Internet Egress: N/A 🔴
 {% if dns_resolves %}
 DNS Resolution Functional: Yes
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
 DNS Resolution Functional: No 🔴
 {% endif %}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
 {% set dns_resolves = "unknown" %}
 DNS Resolution Functional: N/A 🔴
 {% endif %}
@@ -124,11 +124,11 @@ DNS Resolution Functional: N/A 🔴
 {% if store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
 Williams Sonoma Site (williams-sonoma.com) Reachable: Yes
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
 Williams Sonoma Site (williams-sonoma.com) Reachable: No 🔴
 {% endif %}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
 Williams Sonoma Site (williams-sonoma.com) Reachable: N/A 🔴
 {% endif %}
 {% if not store_switch_connect_storesweb.stderr | default("failed") %}
@@ -136,11 +136,11 @@ Williams Sonoma Site (williams-sonoma.com) Reachable: N/A 🔴
 {% if store_wide_web_reachable %}
 Store Wide Web Site ({{ storesweb_fqdn }} ) Reachable: Yes
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
 Store Wide Web Site ({{ storesweb_fqdn }} ) Reachable: No 🔴
 {% endif %}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
 {% set store_wide_web_reachable = "unknown" %}
 Store Wide Web Site ({{ storesweb_fqdn }} ) Reachable: N/A 🔴
 {% endif %}
@@ -148,30 +148,30 @@ Store Wide Web Site ({{ storesweb_fqdn }} ) Reachable: N/A 🔴
 {% if store_switch_connect_verifone.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
 Verifone API (api.vfipayna.com) Reachable: Yes
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
 Verifone API (api.vfipayna.com) Reachable: No 🔴
 {% endif %}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
 Verifone API (api.vfipayna.com) Reachable: N/A 🔴
 {% endif %}
 Verifone Active Firewall Sessions:
 {% if not active_verifone_sessions_ashburn.stderr | default("failed") %}
   Ashburn: {{ active_verifone_sessions_ashburn.stdout_lines | length - 1 }}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
   Ashburn: N/A 🔴
 {% endif %}
 {% if not active_verifone_sessions_rocklin.stderr | default("failed") %}
   Rocklin: {{ active_verifone_sessions_rocklin.stdout_lines | length - 1 }}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
   Rocklin: N/A 🔴
 {% endif %}
 {% if not active_verifone_sessions_sacramento.stderr | default("failed") %}
   Sacramento: {{ active_verifone_sessions_sacramento.stdout_lines | length - 1 }}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
   Sacramento: N/A 🔴
 {% endif %}
 {% if sdwan_store %}
@@ -186,13 +186,13 @@ Cisco SD-WAN:
 {% if s.state == "up" %}
       {{ s["local-color"] | title }}: Up
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
       {{ s["local-color"] | title }}: Down 🔴
 {% if sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}{% endif %}
 {% endif %}
 {% endfor %}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
     Ashburn Hub Router: N/A 🔴
 {% endif %}
 {% if rkat1_hub_1_sessions.json.data | default("") %}
@@ -203,13 +203,13 @@ Cisco SD-WAN:
 {% if s.state == "up" %}
       {{ s["local-color"] | title }}: Up
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
       {{ s["local-color"] | title }}: Down 🔴
 {% if sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}{% endif %}
 {% endif %}
 {% endfor %}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
     Rocklin Hub Router 1: N/A 🔴
 {% endif %}
 {% if rkat1_hub_2_sessions.json.data | default("") %}
@@ -220,13 +220,13 @@ Cisco SD-WAN:
 {% if s.state == "up" %}
       {{ s["local-color"] | title }}: Up
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
       {{ s["local-color"] | title }}: Down 🔴
 {% if sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}{% endif %}
 {% endif %}
 {% endfor %}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
     Rocklin Hub Router 2: N/A 🔴
 {% endif %}
 {% if tloc_stats.json.data | default("") %}
@@ -241,19 +241,19 @@ Cisco SD-WAN:
 {% if stats_count > 0 %}
 {% set stats_mean = "%.2f" | format(stats | sum / stats_count) %}
 {% if p == "vQoE_Score" and stats_mean | int <= 5 %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
       {{ p | replace("_", " ") }}: {{ stats_mean }} 🔴
 {% else %}
       {{ p | replace("_", " ") }}: {{ stats_mean }}
 {% endif %}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
       {{ p | replace("_", " ") }}: N/A 🔴
 {% endif %}
 {% endfor %}
 {% endfor %}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
     TLOC Stats (Past Hour): N/A 🔴
 {% endif %}
 {% endif %}
@@ -264,12 +264,12 @@ Mist Wireless:
 {% if mist_site_stats.json.num_ap_connected == mist_site_stats.json.num_ap %}
   Connected APs: {{ mist_site_stats.json.num_ap_connected }}/{{ mist_site_stats.json.num_ap }}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
   Connected APs: {{ mist_site_stats.json.num_ap_connected }}/{{ mist_site_stats.json.num_ap }} 🔴
 {% endif %}
   Connected Clients: {{ mist_site_stats.json.num_clients }}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
   Site: N/A 🔴
   Connected APs: N/A 🔴
   Connected Clients: N/A 🔴
@@ -282,13 +282,13 @@ Mist Wireless:
       Connected Clients: {{ mist_client_stats.json | selectattr('ssid', 'match', wlan.ssid) | length }}
 {% endfor %}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
   SSIDs: N/A 🔴
 {% endif %}
 {% if mist_client_stats.json | default("") %}
 {% set rssi =  mist_client_stats.json | map(attribute='rssi') | sort %}
   RSSI:
-    Best: {% if rssi[-1] | int > -70 %}{{ rssi[-1] }}{% else %}{{ rssi[-1] }} 🔴{% set issue.found = true %}{% endif +%}
+    Best: {% if rssi[-1] | int > -70 %}{{ rssi[-1] }}{% else %}{{ rssi[-1] }} 🔴{% set ns.issue_found = true %}{% endif +%}
     Worst: {% if rssi[0] | int > -70 %}{{ rssi[0] }}{% else %}{{ rssi[0] }} 🔴{% endif +%}
     Median: {% if rssi[rssi | length // 2] | int > -70 %}{{ rssi[rssi | length // 2] }}{% else %}{{ rssi[rssi | length // 2] }} 🔴{% endif +%}
     Top 5 Worst:
@@ -306,7 +306,7 @@ Mist Wireless:
         Username: {{ c.username | default("") }}
 {% endfor %}
 {% else %}
-{% set issue.found = true %}
+{% set ns.issue_found = true %}
   RSSI: N/A 🔴
 {% endif %}
 {% endif %}
@@ -321,10 +321,10 @@ Mist Wireless:
                                           (sdwan_sessions.internet.count > 0 and
                                           sdwan_sessions.internet.count == sdwan_sessions.internet.down) else false %}
 {% set store_reachable = true if store_switch_pingable or store_router_pingable else false %}
-{% if issue.found or
-        sdwan_all_private_down or
-        sdwan_all_internet_down or
-        not store_reachable %}
+{% if ns.issue_found or
+      sdwan_all_private_down or
+      sdwan_all_internet_down or
+      not store_reachable %}
 {# Specific recommendations #}
 {% if not store_reachable %}
 ⏺ Store is not reachable, call the store MOD to verify power
@@ -340,18 +340,18 @@ Mist Wireless:
 ⏺ Broadband tunnel is down, open a ticket with Granite and update the incident with the details
 {% endif %}
 {% if not internet_reachable and
-        mpls_path_up and
-        store_router_pingable and
-        store_switch_pingable %}
+      mpls_path_up and
+      store_router_pingable and
+      store_switch_pingable %}
 ⏺ Internet is not reachable, escalate to DNL3
 {% elif not internet_reachable %}
 ⏺ Internet is not reachable, open a ticket with Granite and update the incident with the details
 {% endif %}
 {% if not store_wide_web_reachable and
-        mpls_path_up and
-        dns_resolves and
-        store_router_pingable and
-        store_switch_pingable %}
+      mpls_path_up and
+      dns_resolves and
+      store_router_pingable and
+      store_switch_pingable %}
 ⏺ Store Wide Web is not reachable, contact Store App Support
 {% endif %}
 {% if switch_uptime != "unknown" and not switch_uptime | regex_search("hour", multiline=False, ignorecase=False) %}
@@ -369,72 +369,76 @@ Mist Wireless:
 ##### Rocklin MPLS Router: Store Switch Reachability ##############################
 
 {% if not store_switch_ping.stderr | default("failed") %}
-{% for item in store_switch_ping.stdout_lines[4:-4] %}
-{# Strip ASCII control characters #}
-{% set item = item | regex_replace("[^\x20-\x7e]", "") %}
-{% if "***" in item %}
-{{ item | regex_replace("\s?\*{3}\s?", "") }}
+  {% for item in store_switch_ping.stdout_lines[4:-4] %}
+    {# Strip ASCII control characters #}
+    {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
+    {% if "***" in item %}
+      {{- item | regex_replace("\s?\*{3}\s?", "") }}
 
+    {% else %}
+      {{- item }}
+    {% endif %}
+  {% endfor %}
 {% else %}
-{{ item }}
-{% endif %}
-{% endfor %}
-{% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
 ##### Store Switch: Uptime ##############################
 
 {% if not store_switch_uptime.stderr | default("failed") %}
-{% for item in store_switch_uptime.stdout_lines[4:-4] %}
-{# Strip ASCII control characters #}
-{% set item = item | regex_replace("[^\x20-\x7e]", "") %}
-{% if "***" in item %}
-{{ item | regex_replace("\s?\*{3}\s?", "") }}
+  {% for item in store_switch_uptime.stdout_lines[4:-4] %}
+    {# Strip ASCII control characters #}
+    {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
+    {% if "***" in item %}
+      {{- item | regex_replace("\s?\*{3}\s?", "") }}
 
+    {% else %}
+      {{- item }}
+    {% endif %}
+  {% endfor %}
 {% else %}
-{{ item }}
-{% endif %}
-{% endfor %}
-{% else %}
-N/A
+  {% set item = "N/A"%}
+  {{- item }}
 {% endif %}
 
 
 ##### Rocklin MPLS Router: Store Router Reachability ##############################
 
 {% if not store_router_ping.stderr | default("failed") %}
-{% for item in store_router_ping.stdout_lines[4:-4] %}
-{# Strip ASCII control characters #}
-{% set item = item | regex_replace("[^\x20-\x7e]", "") %}
-{% if "***" in item %}
-{{ item | regex_replace("\s?\*{3}\s?", "") }}
+  {% for item in store_router_ping.stdout_lines[4:-4] %}
+    {# Strip ASCII control characters #}
+    {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
+    {% if "***" in item %}
+      {{- item | regex_replace("\s?\*{3}\s?", "") }}
 
+    {% else %}
+      {{- item }}
+    {% endif %}
+  {% endfor %}
 {% else %}
-{{ item }}
-{% endif %}
-{% endfor %}
-{% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
 ##### Rocklin MPLS Router: Store POS Subnet in Route Table ##############################
 
 {% if not store_subnet_lookup.stderr | default("failed") %}
-{% for item in store_subnet_lookup.stdout_lines[4:-4] %}
-{# Strip ASCII control characters #}
-{% set item = item | regex_replace("[^\x20-\x7e]", "") %}
-{% if "***" in item %}
-{{ item | regex_replace("\s?\*{3}\s?", "") }}
+  {% for item in store_subnet_lookup.stdout_lines[4:-4] %}
+    {# Strip ASCII control characters #}
+    {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
+    {% if "***" in item %}
+      {{- item | regex_replace("\s?\*{3}\s?", "") }}
 
+    {% else %}
+      {{- item }}
+    {% endif %}
+  {% endfor %}
 {% else %}
-{{ item }}
-{% endif %}
-{% endfor %}
-{% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
@@ -442,36 +446,40 @@ N/A
 ##### vManage: Rocklin Hub Router 1 BFD Sessions ##############################
 
 {% if rkat1_hub_1_sessions.json.data | default("") %}
-{{ rkat1_hub_1_sessions.json.data | ansible.builtin.to_nice_json }}
+  {{- rkat1_hub_1_sessions.json.data | ansible.builtin.to_nice_json }}
 {% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
 ##### vManage: Rocklin Hub Router 2 BFD Sessions ##############################
 
 {% if rkat1_hub_2_sessions.json.data | default("") %}
-{{ rkat1_hub_2_sessions.json.data | ansible.builtin.to_nice_json }}
+  {{- rkat1_hub_2_sessions.json.data | ansible.builtin.to_nice_json }}
 {% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
 ##### vManage: Ashburn Hub Router BFD Sessions ##############################
 
 {% if asbc1_hub_1_sessions.json.data | default("") %}
-{{ asbc1_hub_1_sessions.json.data | ansible.builtin.to_nice_json }}
+  {{- asbc1_hub_1_sessions.json.data | ansible.builtin.to_nice_json }}
 {% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
 ##### vManage: TLOC Statistics ##############################
 
 {% if tloc_stats.json.data | default("") %}
-{{ tloc_stats.json.data | ansible.builtin.to_nice_json }}
+  {{- tloc_stats.json.data | ansible.builtin.to_nice_json }}
 {% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
@@ -480,18 +488,19 @@ N/A
 ##### Rocklin MPLS Router: Store Broadband VPN Tunnel Status ##############################
 
 {% if not store_bb_tunnel_status.stderr | default("failed") %}
-{% for item in store_bb_tunnel_status.stdout_lines[4:-4] %}
-{# Strip ASCII control characters #}
-{% set item = item | regex_replace("[^\x20-\x7e]", "") %}
-{% if "***" in item %}
-{{ item | regex_replace("\s?\*{3}\s?", "") }}
+  {% for item in store_bb_tunnel_status.stdout_lines[4:-4] %}
+    {# Strip ASCII control characters #}
+    {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
+    {% if "***" in item %}
+      {{- item | regex_replace("\s?\*{3}\s?", "") }}
 
+    {% else %}
+      {{- item }}
+    {% endif %}
+  {% endfor %}
 {% else %}
-{{ item }}
-{% endif %}
-{% endfor %}
-{% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
@@ -500,36 +509,40 @@ N/A
 ##### Mist: Sites ##############################
 
 {% if mist_sites.json | default("") %}
-{{ mist_sites.json | ansible.builtin.to_nice_json }}
+  {{- mist_sites.json | ansible.builtin.to_nice_json }}
 {% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
 ##### Mist: Site Stats ##############################
 
 {% if mist_site_stats.json | default("") %}
-{{ mist_site_stats.json | ansible.builtin.to_nice_json }}
+  {{- mist_site_stats.json | ansible.builtin.to_nice_json }}
 {% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
 ##### Mist: Client Stats ##############################
 
 {% if mist_client_stats.json | default("") %}
-{{ mist_client_stats.json | ansible.builtin.to_nice_json }}
+  {{- mist_client_stats.json | ansible.builtin.to_nice_json }}
 {% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
 ##### Mist: WLANs ##############################
 
 {% if mist_wlans.json | default("") %}
-{{ mist_wlans.json | ansible.builtin.to_nice_json }}
+  {{- mist_wlans.json | ansible.builtin.to_nice_json }}
 {% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
@@ -537,144 +550,152 @@ N/A
 ##### Store Switch: Internet Path ##############################
 
 {% if not store_internet_egress.stderr | default("failed") %}
-{% for item in store_internet_egress.stdout_lines[4:-4] %}
-{# Strip ASCII control characters #}
-{% set item = item | regex_replace("[^\x20-\x7e]", "") %}
-{% if "***" in item %}
-{{ item | regex_replace("\s?\*{3}\s?", "") }}
+  {% for item in store_internet_egress.stdout_lines[4:-4] %}
+    {# Strip ASCII control characters #}
+    {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
+    {% if "***" in item %}
+      {{- item | regex_replace("\s?\*{3}\s?", "") }}
 
+    {% else %}
+      {{- item }}
+    {% endif %}
+  {% endfor %}
 {% else %}
-{{ item }}
-{% endif %}
-{% endfor %}
-{% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
 ##### Store Switch: DNS Resolution ##############################
 
 {% if not store_switch_dns_test.stderr | default("failed") %}
-{% for item in store_switch_dns_test.stdout_lines[4:-4] %}
-{# Strip ASCII control characters #}
-{% set item = item | regex_replace("[^\x20-\x7e]", "") %}
-{% if "***" in item %}
-{{ item | regex_replace("\s?\*{3}\s?", "") }}
+  {% for item in store_switch_dns_test.stdout_lines[4:-4] %}
+    {# Strip ASCII control characters #}
+    {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
+    {% if "***" in item %}
+      {{- item | regex_replace("\s?\*{3}\s?", "") }}
 
+    {% else %}
+      {{- item }}
+  {% endif %}
+  {% endfor %}
 {% else %}
-{{ item }}
-{% endif %}
-{% endfor %}
-{% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
 ##### Store Switch: Connect to www.williams-sonoma.com ##############################
 
 {% if not store_switch_connect_ws_site.stderr | default("failed") %}
-{% for item in store_switch_connect_ws_site.stdout_lines[4:-4] %}
-{# Strip ASCII control characters #}
-{% set item = item | regex_replace("[^\x20-\x7e]", "") %}
-{% if "***" in item %}
-{{ item | regex_replace("\s?\*{3}\s?", "") }}
+  {% for item in store_switch_connect_ws_site.stdout_lines[4:-4] %}
+    {# Strip ASCII control characters #}
+    {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
+    {% if "***" in item %}
+      {{- item | regex_replace("\s?\*{3}\s?", "") }}
 
+    {% else %}
+      {{- item }}
+    {% endif %}
+  {% endfor %}
 {% else %}
-{{ item }}
-{% endif %}
-{% endfor %}
-{% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
 ##### Store Switch: Connect to Store Wide Web ##############################
 
 {% if not store_switch_connect_storesweb.stderr | default("failed") %}
-{% for item in store_switch_connect_storesweb.stdout_lines[4:-4] %}
-{# Strip ASCII control characters #}
-{% set item = item | regex_replace("[^\x20-\x7e]", "") %}
-{% if "***" in item %}
-{{ item | regex_replace("\s?\*{3}\s?", "") }}
+  {% for item in store_switch_connect_storesweb.stdout_lines[4:-4] %}
+    {# Strip ASCII control characters #}
+    {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
+    {% if "***" in item %}
+      {{- item | regex_replace("\s?\*{3}\s?", "") }}
 
+    {% else %}
+      {{- item }}
+    {% endif %}
+  {% endfor %}
 {% else %}
-{{ item }}
-{% endif %}
-{% endfor %}
-{% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
 ##### Store Switch: Connect to Verifone ##############################
 
 {% if not store_switch_connect_verifone.stderr | default("failed") %}
-{% for item in store_switch_connect_verifone.stdout_lines[4:-4] %}
-{# Strip ASCII control characters #}
-{% set item = item | regex_replace("[^\x20-\x7e]", "") %}
-{% if "***" in item %}
-{{ item | regex_replace("\s?\*{3}\s?", "") }}
+  {% for item in store_switch_connect_verifone.stdout_lines[4:-4] %}
+    {# Strip ASCII control characters #}
+    {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
+    {% if "***" in item %}
+      {{- item | regex_replace("\s?\*{3}\s?", "") }}
 
+    {% else %}
+      {{- item }}
+    {% endif %}
+  {% endfor %}
 {% else %}
-{{ item }}
-{% endif %}
-{% endfor %}
-{% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
 ##### Ashburn Verifone Connections ##############################
 
 {% if not active_verifone_sessions_ashburn.stderr | default("failed") %}
-{% for item in active_verifone_sessions_ashburn.stdout_lines %}
-{# Strip ASCII control characters #}
-{% set item = item | regex_replace("[^\x20-\x7e]", "") %}
-{% if "***" in item %}
-{{ item | regex_replace("\s?\*{3}\s?", "") }}
+  {% for item in active_verifone_sessions_ashburn.stdout_lines %}
+    {# Strip ASCII control characters #}
+    {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
+    {% if "***" in item %}
+      {{- item | regex_replace("\s?\*{3}\s?", "") }}
 
+    {% else %}
+      {{- item }}
+    {% endif %}
+  {% endfor %}
 {% else %}
-{{ item }}
-{% endif %}
-{% endfor %}
-{% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
 ##### Rocklin Verifone Connections ##############################
 
 {% if not active_verifone_sessions_rocklin.stderr | default("failed") %}
-{% for item in active_verifone_sessions_rocklin.stdout_lines %}
-{# Strip ASCII control characters #}
-{% set item = item | regex_replace("[^\x20-\x7e]", "") %}
-{% if "***" in item %}
-{{ item | regex_replace("\s?\*{3}\s?", "") }}
+  {% for item in active_verifone_sessions_rocklin.stdout_lines %}
+    {# Strip ASCII control characters #}
+    {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
+    {% if "***" in item %}
+      {{- item | regex_replace("\s?\*{3}\s?", "") }}
 
+    {% else %}
+      {{- item }}
+    {% endif %}
+  {% endfor %}
 {% else %}
-{{ item }}
-{% endif %}
-{% endfor %}
-{% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 
 ##### Sacramento Verifone Connections ##############################
 
 {% if not active_verifone_sessions_sacramento.stderr | default("failed") %}
-{% for item in active_verifone_sessions_sacramento.stdout_lines %}
-{# Strip ASCII control characters #}
-{% set item = item | regex_replace("[^\x20-\x7e]", "") %}
-{% if "***" in item %}
-{{ item | regex_replace("\s?\*{3}\s?", "") }}
+  {% for item in active_verifone_sessions_sacramento.stdout_lines %}
+    {# Strip ASCII control characters #}
+    {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
+    {% if "***" in item %}
+      {{- item | regex_replace("\s?\*{3}\s?", "") }}
 
+    {% else %}
+      {{- item }}
+    {% endif %}
+  {% endfor %}
 {% else %}
-{{ item }}
-{% endif %}
-{% endfor %}
-{% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 
 {% if not sdwan_store %}
@@ -682,19 +703,20 @@ N/A
 ##### Rocklin MPLS Router: Store Broadband VPN Tunnels Down ##############################
 
 {% if not store_vpn_down_count.stderr | default("failed") %}
-{% for item in store_vpn_down_count.stdout_lines[4:-4] %}
-{# Strip ASCII control characters #}
-{% set item = item | regex_replace("[^\x20-\x7e]", "") %}
-{% if "***" in item %}
-{{ item | regex_replace("\s?\*{3}\s?", "") }}
+  {% for item in store_vpn_down_count.stdout_lines[4:-4] %}
+    {# Strip ASCII control characters #}
+    {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
+    {% if "***" in item %}
+      {{- item | regex_replace("\s?\*{3}\s?", "") }}
 
-{% elif item.startswith("Number") %}
-{{ item }}
+    {% elif item.startswith("Number") %}
+      {{- item }}
+    {% else %}
+      {{- item }}
+    {% endif %}
+  {% endfor %}
 {% else %}
-{{ item }}
-{% endif %}
-{% endfor %}
-{% else %}
-N/A
+  {% set na = "N/A" %}
+  {{- na }}
 {% endif %}
 {% endif %}

@@ -37,26 +37,26 @@
         work_notes: |
           <h3>Store Analysis</h3>
           <pre style="background-color: transparent; border-width: 0">
-          {% set issue = namespace(found = false) %}
+          {% set ns = namespace(issue_found = false) %}
           Store Switch:<br />
           {% if not store_switch_ping.stderr | default("failed") %}
           {% set store_switch_pingable = true if store_switch_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) else false %}
           {% if store_switch_pingable %}
             Pingable: Yes<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
             Pingable: No 🔴<br />
           {% endif %}
           {% else %}
           {% set store_switch_pingable = false %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
             Pingable: N/A 🔴<br />
           {% endif %}
           {% if not store_switch_uptime.stderr | default("failed") %}
           {% set switch_uptime = store_switch_uptime.stdout_lines[5] | regex_replace("^.+uptime is ", "") %}
             Uptime: {{ switch_uptime }}<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
           {% set switch_uptime = "unknown" %}
             Uptime: N/A 🔴<br />
           {% endif %}
@@ -66,12 +66,12 @@
           {% if store_router_pingable %}
             Pingable: Yes<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
             Pingable: No 🔴<br />
           {% endif %}
           {% else %}
           {% set store_router_pingable = false %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
             Pingable: N/A 🔴<br />
           {% endif %}
           {% if not store_subnet_lookup.stderr | default("failed") %}
@@ -79,11 +79,11 @@
           {% if mpls_path_up %}
           MPLS Path: Up<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
           MPLS Path: Down 🔴<br />
           {% endif %}
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
           {% set mpls_path_up = "unknown" %}
           MPLS Path: N/A 🔴<br />
           {% endif %}
@@ -93,11 +93,11 @@
           {% if bb_tunnel_up %}
           Broadband Tunnel: Up<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
           Broadband Tunnel: Down 🔴<br />
           {% endif %}
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
           {% set bb_tunnel_up = "unknown" %}
           Broadband Tunnel: N/A 🔴<br />
           {% endif %}
@@ -107,11 +107,11 @@
           {% if internet_reachable %}
           Internet Reachable: Yes<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
           Internet Reachable: No 🔴<br />
           {% endif %}
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
           {% set internet_reachable = "unknown" %}
           Internet Reachable: N/A 🔴<br />
           {% endif %}
@@ -123,11 +123,11 @@
           {% elif store_internet_egress.stdout | regex_search("sast1", multiline=True, ignorecase=False)  %}
           Internet Egress: Sacramento<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
           Internet Egress: Unknown 🔴<br />
           {% endif %}
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
           Internet Egress: N/A 🔴<br />
           {% endif %}
           {% if not store_switch_dns_test.stderr | default("failed") %}
@@ -135,11 +135,11 @@
           {% if dns_resolves %}
           DNS Resolution Functional: Yes<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
           DNS Resolution Functional: No 🔴<br />
           {% endif %}
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
           {% set dns_resolves = "unknown" %}
           DNS Resolution Functional: N/A 🔴<br />
           {% endif %}
@@ -147,11 +147,11 @@
           {% if store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
           Williams Sonoma Site (williams-sonoma.com) Reachable: Yes<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
           Williams Sonoma Site (williams-sonoma.com) Reachable: No 🔴<br />
           {% endif %}
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
           Williams Sonoma Site (williams-sonoma.com) Reachable: N/A 🔴<br />
           {% endif %}
           {% if not store_switch_connect_storesweb.stderr | default("failed") %}
@@ -159,11 +159,11 @@
           {% if store_wide_web_reachable %}
           Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: Yes<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
           Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: No 🔴<br />
           {% endif %}
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
           {% set store_wide_web_reachable = "unknown" %}
           Store Wide Web Site ({{ storesweb_fqdn }}) Reachable: N/A 🔴<br />
           {% endif %}
@@ -171,30 +171,30 @@
           {% if store_switch_connect_verifone.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
           Verifone API (api.vfipayna.com) Reachable: Yes<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
           Verifone API (api.vfipayna.com) Reachable: No 🔴<br />
           {% endif %}
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
           Verifone API (api.vfipayna.com) Reachable: N/A 🔴<br />
           {% endif %}
           Verifone Active Firewall Sessions:<br />
           {% if not active_verifone_sessions_ashburn.stderr | default("failed") %}
             Ashburn: {{ active_verifone_sessions_ashburn.stdout_lines | length - 1 }}<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
             Ashburn: N/A 🔴<br />
           {% endif %}
           {% if not active_verifone_sessions_rocklin.stderr | default("failed") %}
             Rocklin: {{ active_verifone_sessions_rocklin.stdout_lines | length - 1 }}<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
             Rocklin: N/A 🔴<br />
           {% endif %}
           {% if not active_verifone_sessions_sacramento.stderr | default("failed") %}
             Sacramento: {{ active_verifone_sessions_sacramento.stdout_lines | length - 1 }}<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
             Sacramento: N/A 🔴<br />
           {% endif %}
           {% if sdwan_store %}
@@ -209,13 +209,13 @@
           {% if s.state == "up" %}
                 {{ s["local-color"] | title }}: Up<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
                 {{ s["local-color"] | title }}: Down 🔴<br />
           {% if sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}{% endif %}
           {% endif %}
           {% endfor %}
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
               Ashburn Hub Router: N/A 🔴<br />
           {% endif %}
           {% if rkat1_hub_1_sessions.json.data | default("") %}
@@ -226,13 +226,13 @@
           {% if s.state == "up" %}
                 {{ s["local-color"] | title }}: Up<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
                 {{ s["local-color"] | title }}: Down 🔴<br />
           {% if sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}{% endif %}
           {% endif %}
           {% endfor %}
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
               Rocklin Hub Router 1: N/A 🔴<br />
           {% endif %}
           {% if rkat1_hub_2_sessions.json.data | default("") %}
@@ -243,13 +243,13 @@
           {% if s.state == "up" %}
                 {{ s["local-color"] | title }}: Up<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
                 {{ s["local-color"] | title }}: Down 🔴<br />
           {% if sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}{% endif %}
           {% endif %}
           {% endfor %}
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
               Rocklin Hub Router 2: N/A 🔴<br />
           {% endif %}
           {% if tloc_stats.json.data | default("") %}
@@ -264,19 +264,19 @@
           {% if stats_count > 0 %}
           {% set stats_mean = "%.2f" | format(stats | sum / stats_count) %}
           {% if p == "vQoE_Score" and stats_mean | int <= 5 %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
                 {{ p | replace("_", " ") }}: {{ stats_mean }} 🔴<br />
           {% else %}
                 {{ p | replace("_", " ") }}: {{ stats_mean }}<br />
           {% endif %}
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
                 {{ p | replace("_", " ") }}: N/A 🔴<br />
           {% endif %}
           {% endfor %}
           {% endfor %}
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
             TLOC Stats (Past Hour): N/A 🔴<br />
           {% endif %}
           {% endif %}
@@ -287,12 +287,12 @@
           {% if mist_site_stats.json.num_ap_connected == mist_site_stats.json.num_ap %}
             Connected APs: {{ mist_site_stats.json.num_ap_connected }}/{{ mist_site_stats.json.num_ap }}<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
             Connected APs: {{ mist_site_stats.json.num_ap_connected }}/{{ mist_site_stats.json.num_ap }} 🔴<br />
           {% endif %}
             Connected Clients: {{ mist_site_stats.json.num_clients }}<br />
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
             Site: N/A 🔴<br />
             Connected APs: N/A 🔴<br />
             Connected Clients: N/A 🔴<br />
@@ -305,13 +305,13 @@
                 Connected Clients: {{ mist_client_stats.json | selectattr('ssid', 'match', wlan.ssid) | length }}<br />
           {% endfor %}
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
             SSIDs: N/A 🔴<br />
           {% endif %}
           {% if mist_client_stats.json | default("") %}
           {% set rssi =  mist_client_stats.json | map(attribute='rssi') | sort %}
             RSSI:<br />
-              Best: {% if rssi[-1] | int > -70 %}{{ rssi[-1] }}{% else %}{{ rssi[-1] }} 🔴{% set issue.found = true %}{% endif %}<br />
+              Best: {% if rssi[-1] | int > -70 %}{{ rssi[-1] }}{% else %}{{ rssi[-1] }} 🔴{% set ns.issue_found = true %}{% endif %}<br />
               Worst: {% if rssi[0] | int > -70 %}{{ rssi[0] }}{% else %}{{ rssi[0] }} 🔴{% endif %}<br />
               Median: {% if rssi[rssi | length // 2] | int > -70 %}{{ rssi[rssi | length // 2] }}{% else %}{{ rssi[rssi | length // 2] }} 🔴{% endif %}<br />
               Top 5 Worst:<br />
@@ -329,7 +329,7 @@
                   Username: {{ c.username | default("") }}<br />
           {% endfor %}
           {% else %}
-          {% set issue.found = true %}
+          {% set ns.issue_found = true %}
             RSSI: N/A 🔴<br />
           {% endif %}
           {% endif %}
@@ -344,7 +344,7 @@
                                                     (sdwan_sessions.internet.count > 0 and
                                                     sdwan_sessions.internet.count == sdwan_sessions.internet.down) else false %}
           {% set store_reachable = true if store_switch_pingable or store_router_pingable else false %}
-          {% if issue.found or
+          {% if ns.issue_found or
                   sdwan_all_private_down or
                   sdwan_all_internet_down or
                   not store_reachable %}

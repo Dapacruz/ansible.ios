@@ -46,7 +46,7 @@
   loop_control:
     loop_var: job
 
-- name: ServiceNow | Set store details facts
+- name: ServiceNow | Set store detail facts
   ansible.builtin.set_fact:
     store_details: "{{ jobs.results[0] }}"
     store_network_details: "{{ jobs.results[1] }}"
