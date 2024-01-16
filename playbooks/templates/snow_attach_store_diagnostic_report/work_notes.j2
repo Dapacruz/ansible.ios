@@ -1,0 +1,478 @@
+#jinja2: lstrip_blocks: True, trim_blocks: True
+{% set ns = namespace(issue_found = false) %}
+{#  #}
+{#  #}
+{# Process Data #}
+{# Store Switch Pingable #}
+{% if not store_switch_ping.stderr | default("failed") %}
+  {% set store_switch_pingable = true if store_switch_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) else false %}
+  {% if store_switch_pingable %}
+    {% set store_switch_pingable_txt = "Yes" %}
+  {% else %}
+    {% set ns.issue_found = true %}
+    {% set store_switch_pingable_txt = "No 🔴" %}
+  {% endif %}
+{% else %}
+  {% set store_switch_pingable = false %}
+  {% set ns.issue_found = true %}
+  {% set store_switch_pingable_txt = "N/A 🔴" %}
+{% endif %}
+{#  #}
+{#  #}
+{# Store Switch Uptime #}
+{% if not store_switch_uptime.stderr | default("failed") %}
+  {% set switch_uptime = store_switch_uptime.stdout_lines[5] | regex_replace("^.+uptime is ", "") %}
+  {% set store_switch_uptime_txt = switch_uptime %}
+{% else %}
+  {% set ns.issue_found = true %}
+  {% set switch_uptime = "unknown" %}
+  {% set store_switch_uptime_txt = "N/A 🔴" %}
+{% endif %}
+{#  #}
+{#  #}
+{# Rocklin MPLS Router Pingable #}
+{% if not store_router_ping.stderr | default("failed") %}
+  {% set store_router_pingable = true if store_router_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) else false %}
+  {% if store_router_pingable %}
+    {% set store_router_pingable_txt = "Yes" %}
+  {% else %}
+    {% set ns.issue_found = true %}
+    {% set store_router_pingable_txt = "No 🔴" %}
+  {% endif %}
+{% else %}
+  {% set store_router_pingable = false %}
+  {% set ns.issue_found = true %}
+  {% set store_router_pingable_txt = " N/A 🔴" %}
+{% endif %}
+{#  #}
+{#  #}
+{# MPLS Path #}
+{% if not store_subnet_lookup.stderr | default("failed") %}
+  {% set mpls_path_up = store_subnet_lookup.stdout_lines[5] | regex_search(store_subnet, multiline=True, ignorecase=False) %}
+  {% if mpls_path_up %}
+    {% set mpls_path_state = "Up" %}
+  {% else %}
+    {% set ns.issue_found = true %}
+    {% set mpls_path_state = "Down 🔴" %}
+  {% endif %}
+{% else %}
+  {% set ns.issue_found = true %}
+  {% set mpls_path_up = "unknown" %}
+    {% set mpls_path_state = "N/A 🔴" %}
+{% endif %}
+{#  #}
+{#  #}
+{# Broadband Tunnel #}
+{% if not sdwan_store %}
+  {% if not store_bb_tunnel_status.stderr | default("failed") %}
+    {% set bb_tunnel_up = true if store_bb_tunnel_status.stdout | regex_search("prefixes\s[1-9]\d*\s*$", multiline=True, ignorecase=False) else false %}
+    {% if bb_tunnel_up %}
+      {% set bb_tunnel_state = "Up" %}
+    {% else %}
+      {% set ns.issue_found = true %}
+      {% set bb_tunnel_state = "Down 🔴" %}
+    {% endif %}
+  {% else %}
+    {% set ns.issue_found = true %}
+    {% set bb_tunnel_up = "unknown" %}
+    {% set bb_tunnel_state = "N/A 🔴" %}
+  {% endif %}
+{% endif %}
+{#  #}
+{#  #}
+{# Internet Reachable #}
+{% if not store_internet_egress.stderr | default("failed") %}
+  {% set internet_reachable = store_internet_egress.stdout | regex_search("8.8.8.8.+msec", multiline=True, ignorecase=False) or store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
+  {% if internet_reachable %}
+    {% set internet_reachable_txt = "Yes" %}
+  {% else %}
+    {% set ns.issue_found = true %}
+    {% set internet_reachable_txt = "No 🔴" %}
+  {% endif %}
+{% else %}
+  {% set ns.issue_found = true %}
+  {% set internet_reachable = "unknown" %}
+  {% set internet_reachable_txt = "N/A 🔴" %}
+{% endif %}
+{#  #}
+{#  #}
+{# Internet Egress #}
+{% if not store_internet_egress.stderr | default("failed") %}
+  {% if store_internet_egress.stdout | regex_search("asgi1", multiline=True, ignorecase=False) %}
+    {% set store_internet_egress_txt = "Ashburn" %}
+  {% elif store_internet_egress.stdout | regex_search("rkat1", multiline=True, ignorecase=False)  %}
+    {% set store_internet_egress_txt = "Rocklin" %}
+  {% elif store_internet_egress.stdout | regex_search("sast1", multiline=True, ignorecase=False)  %}
+    {% set store_internet_egress_txt = "Sacramento" %}
+  {% else %}
+    {% set ns.issue_found = true %}
+    {% set store_internet_egress_txt = "Unknown 🔴" %}
+  {% endif %}
+{% else %}
+  {% set ns.issue_found = true %}
+  {% set store_internet_egress_txt = "N/A 🔴" %}
+{% endif %}
+{#  #}
+{#  #}
+{# DNS Test #}
+{% if not store_switch_dns_test.stderr | default("failed") %}
+  {% set dns_resolves = store_switch_dns_test.stdout | regex_search("Translating.+domain\sserver\s\(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\)\s\[OK\]", multiline=True, ignorecase=False) %}
+  {% if dns_resolves %}
+    {% set dns_resolves_txt = "Yes" %}
+  {% else %}
+    {% set ns.issue_found = true %}
+    {% set dns_resolves_txt = "No 🔴" %}
+  {% endif %}
+{% else %}
+  {% set ns.issue_found = true %}
+  {% set dns_resolves = "unknown" %}
+    {% set dns_resolves_txt = "N/A 🔴" %}
+{% endif %}
+{#  #}
+{#  #}
+{# Williams Sonoma Site Reachable #}
+{% if not store_switch_connect_ws_site.stderr | default("failed") %}
+  {% if store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
+    {% set ws_site_reachable_txt = "Yes" %}
+  {% else %}
+    {% set ns.issue_found = true %}
+    {% set ws_site_reachable_txt = "No 🔴" %}
+  {% endif %}
+{% else %}
+  {% set ns.issue_found = true %}
+    {% set ws_site_reachable_txt = "N/A 🔴" %}
+{% endif %}
+{#  #}
+{#  #}
+{# Store Wide Web Reachable #}
+{% if not store_switch_connect_storesweb.stderr | default("failed") %}
+  {% set store_wide_web_reachable = store_switch_connect_storesweb.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
+  {% if store_wide_web_reachable %}
+    {% set store_wide_web_reachable_txt = "Yes" %}
+  {% else %}
+    {% set ns.issue_found = true %}
+    {% set store_wide_web_reachable_txt = "No 🔴" %}
+  {% endif %}
+{% else %}
+  {% set ns.issue_found = true %}
+  {% set store_wide_web_reachable = "unknown" %}
+    {% set store_wide_web_reachable_txt = "N/A 🔴" %}
+{% endif %}
+{#  #}
+{#  #}
+{# Verifone API Reachable #}
+{% if not store_switch_connect_verifone.stderr | default("failed") %}
+  {% if store_switch_connect_verifone.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
+    {% set verifone_api_reachable_txt = "Yes" %}
+  {% else %}
+    {% set ns.issue_found = true %}
+    {% set verifone_api_reachable_txt = "No 🔴" %}
+  {% endif %}
+{% else %}
+  {% set ns.issue_found = true %}
+    {% set verifone_api_reachable_txt = "N/A 🔴" %}
+{% endif %}
+{#  #}
+{#  #}
+{# Firewall Active Verifone Sessions #}
+{% if not active_verifone_sessions_ashburn.stderr | default("failed") %}
+  {% set active_verifone_sessions_ashburn_txt = active_verifone_sessions_ashburn.stdout_lines | length - 1 %}
+{% else %}
+  {% set ns.issue_found = true %}
+  {% set active_verifone_sessions_ashburn_txt = "N/A 🔴" %}
+{% endif %}
+{% if not active_verifone_sessions_rocklin.stderr | default("failed") %}
+  {% set active_verifone_sessions_rocklin_txt = active_verifone_sessions_rocklin.stdout_lines | length - 1 %}
+{% else %}
+  {% set ns.issue_found = true %}
+  {% set active_verifone_sessions_rocklin_txt = "N/A 🔴" %}
+{% endif %}
+{% if not active_verifone_sessions_sacramento.stderr | default("failed") %}
+  {% set active_verifone_sessions_sacramento_txt = active_verifone_sessions_sacramento.stdout_lines | length - 1 %}
+{% else %}
+  {% set ns.issue_found = true %}
+  {% set active_verifone_sessions_sacramento_txt = "N/A 🔴" %}
+{% endif %}
+{#  #}
+{#  #}
+{# SD-WAN #}
+{% if sdwan_store %}
+  {# Tunnel Status #}
+  {% set sdwan_sessions = { "private": { "count": 0, "down": 0 }, "internet": { "count": 0, "down": 0 } } %}
+  {# Ashburn Hub Router #}
+  {% set asbc_hub_router_txt = [] %}
+  {% if asbc1_hub_1_sessions.json.data | default("") %}
+    {% set _ = asbc_hub_router_txt.append("~~~~Ashburn Hub Router:") %}
+    {% for s in asbc1_hub_1_sessions.json.data %}
+      {% set session_type = s["local-color"] | regex_replace("(\d$)|(^biz-)", "") %}
+      {% set _ = sdwan_sessions[session_type].update({ "count": sdwan_sessions[session_type]["count"] + 1 })  %}
+      {% if s.state == "up" %}
+        {% set _ = asbc_hub_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title()) %}
+      {% else %}
+        {% set ns.issue_found = true %}
+        {% set _ = asbc_hub_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title()) + " 🔴" %}
+        {% set _ = sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    {% set ns.issue_found = true %}
+    {% set _ = asbc_hub_router_txt.append("~~~~Ashburn Hub Router: N/A 🔴") %}
+  {% endif %}
+  {% set asbc_hub_router_txt = asbc_hub_router_txt | join("\n") | regex_replace("~", " ") | regex_replace("^\s+", "") %}
+  {# Rocklin Hub 1 Router #}
+  {% set rkat_hub_1_router_txt = [] %}
+  {% if rkat1_hub_1_sessions.json.data | default("") %}
+    {% set _ = rkat_hub_1_router_txt.append("~~~~Rocklin Hub 1 Router:") %}
+    {% for s in rkat1_hub_1_sessions.json.data %}
+      {% set session_type = s["local-color"] | regex_replace("(\d$)|(^biz-)", "") %}
+      {% set _ = sdwan_sessions[session_type].update({ "count": sdwan_sessions[session_type]["count"] + 1 })  %}
+      {% if s.state == "up" %}
+        {% set _ = rkat_hub_1_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title()) %}
+      {% else %}
+        {% set ns.issue_found = true %}
+        {% set _ = rkat_hub_1_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title()) + " 🔴" %}
+        {% set _ = sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    {% set ns.issue_found = true %}
+    {% set _ = rkat_hub_1_router_txt.append("~~~~Rocklin Hub 1 Router: N/A 🔴") %}
+  {% endif %}
+  {% set rkat_hub_1_router_txt = rkat_hub_1_router_txt | join("\n") | regex_replace("~", " ") | regex_replace("^\s+", "") %}
+  {# Rocklin Hub 2 Router #}
+  {% set rkat_hub_2_router_txt = [] %}
+  {% if rkat1_hub_2_sessions.json.data | default("") %}
+    {% set _ = rkat_hub_2_router_txt.append("~~~~Rocklin Hub 2 Router:") %}
+    {% for s in rkat1_hub_2_sessions.json.data %}
+      {% set session_type = s["local-color"] | regex_replace("(\d$)|(^biz-)", "") %}
+      {% set _ = sdwan_sessions[session_type].update({ "count": sdwan_sessions[session_type]["count"] + 1 })  %}
+      {% if s.state == "up" %}
+        {% set _ = rkat_hub_2_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title()) %}
+      {% else %}
+        {% set ns.issue_found = true %}
+        {% set _ = rkat_hub_2_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title()) + " 🔴" %}
+        {% set _ = sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    {% set ns.issue_found = true %}
+    {% set _ = rkat_hub_2_router_txt.append("~~~~Rocklin Hub 2 Router: N/A 🔴") %}
+  {% endif %}
+  {% set rkat_hub_2_router_txt = rkat_hub_2_router_txt | join("\n") | regex_replace("~", " ") | regex_replace("^\s+", "") %}
+  {# TLOC Stats #}
+  {% set tloc_stats_txt = [] %}
+  {% if tloc_stats.json.data | default("") %}
+    {% set remote_colors =  [ "biz-internet", "private1", "private2" ] %}
+    {% set properties =  [ "Jitter", "Latency", "Loss_Percentage", "vQoE_Score" ] %}
+    {% set _ = tloc_stats_txt.append("~~TLOC Stats (Past Hour):") %}
+    {% for c in remote_colors %}
+      {% set _ = tloc_stats_txt.append("~~~~" + c.title() + ":") %}
+      {% for p in properties %}
+        {% set stats = tloc_stats.json.data | selectattr("remote_color", "equalto", c) | map(attribute=p | lower) | list %}
+        {% set stats_count = stats | length %}
+        {% if stats_count > 0 %}
+          {% set stats_mean = "%.2f" | format(stats | sum / stats_count) %}
+          {% if p == "vQoE_Score" and stats_mean | int <= 5 %}
+            {% set ns.issue_found = true %}
+            {% set _ = tloc_stats_txt.append("~~~~~~" + p.replace("_", " ") + ": " + stats_mean + " 🔴") %}
+          {% else %}
+            {% set _ = tloc_stats_txt.append("~~~~~~" + p.replace("_", " ") + ": " + stats_mean) %}
+          {% endif %}
+        {% else %}
+          {% set ns.issue_found = true %}
+          {% set _ = tloc_stats_txt.append("~~~~~~" + p.replace("_", " ") + ": " + " N/A 🔴") %}
+        {% endif %}
+      {% endfor %}
+    {% endfor %}
+  {% else %}
+    {% set ns.issue_found = true %}
+    {% set _ = tloc_stats_txt.append("~~TLOC Stats (Past Hour): N/A 🔴") %}
+  {% endif %}
+  {% set tloc_stats_txt = tloc_stats_txt | join("\n") | regex_replace("~", " ") | regex_replace("^\s+", "") %}
+{% endif %}
+{#  #}
+{#  #}
+{# Mist #}
+{% if mist_store %}
+  {# Mist Site #}
+  {% if mist_site_stats.json | default("") %}
+    {% set mist_site_txt = mist_site_stats.json.name %}
+    {% if mist_site_stats.json.num_ap_connected == mist_site_stats.json.num_ap %}
+      {% set connected_aps_txt = mist_site_stats.json.num_ap_connected | string + "/" + mist_site_stats.json.num_ap | string %}
+    {% else %}
+      {% set ns.issue_found = true %}
+      {% set connected_aps_txt = mist_site_stats.json.num_ap_connected | string + "/" + mist_site_stats.json.num_ap | string + " 🔴" %}
+    {% endif %}
+    {% set connected_clients_txt = mist_site_stats.json.num_clients %}
+  {% else %}
+    {% set ns.issue_found = true %}
+    {% set mist_site_txt = "N/A 🔴" %}
+    {% set connected_aps_txt = "N/A 🔴" %}
+    {% set connected_clients_txt = "N/A 🔴" %}
+  {% endif %}
+  {# Mist WLANs #}
+  {% set mist_wlans_txt = [] %}
+  {% if mist_wlans.json | default("") %}
+    {% set _ = mist_wlans_txt.append("~~SSIDs:") %}
+    {% for wlan in mist_wlans.json %}
+      {% set _ = mist_wlans_txt.append("~~~~" + wlan.ssid + ":") %}
+      {% set _ = mist_wlans_txt.append("~~~~~~Enabled: Yes" if wlan.enabled else "~~~~~~Enabled: No") %}
+      {% set _ = mist_wlans_txt.append("~~~~~~Connected Clients: " + mist_client_stats.json | selectattr('ssid', 'match', wlan.ssid) | length | string) %}
+    {% endfor %}
+  {% else %}
+    {% set ns.issue_found = true %}
+    {% set _ = mist_wlans_txt.append("~~SSIDs: N/A 🔴") %}
+  {% endif %}
+  {% set mist_wlans_txt = mist_wlans_txt | join("\n") | regex_replace("~", " ") | regex_replace("^\s+", "") %}
+  {# Mist Client Stats #}
+  {% set mist_client_stats_txt = [] %}
+  {% if mist_client_stats.json | default("") %}
+    {% set rssi =  mist_client_stats.json | map(attribute='rssi') | sort %}
+    {% set _ = mist_client_stats_txt.append("~~RSSI:") %}
+    {% if rssi[-1] | int > -70 %}
+      {% set _ = mist_client_stats_txt.append("~~~~Best: " + rssi[-1] | string) %}
+    {% else %}
+      {% set ns.issue_found = true %}
+      {% set _ = mist_client_stats_txt.append("~~~~Best: " + rssi[-1] | string + " 🔴") %}
+    {% endif %}
+    {% if rssi[0] | int > -70 %}
+      {% set _ = mist_client_stats_txt.append("~~~~Worst: " + rssi[0] | string) %}
+    {% else %}
+      {% set _ = mist_client_stats_txt.append("~~~~Worst: " + rssi[0] | string + " 🔴") %}
+    {% endif %}
+    {% if rssi[rssi | length // 2] | int > -70 %}
+      {% set _ = mist_client_stats_txt.append("~~~~Median: " + rssi[rssi | length // 2] | string) %}
+    {% else %}
+      {% set ns.issue_found = true %}
+      {% set _ = mist_client_stats_txt.append("~~~~Median: " + rssi[rssi | length // 2] | string + " 🔴") %}
+    {% endif %}
+    {% set _ = mist_client_stats_txt.append("~~~~Top " + (mist_client_stats.json | sort(attribute="rssi"))[:5] | length | string + " Worst:") %}
+    {% for c in (mist_client_stats.json | sort(attribute="rssi"))[:5] %}
+      {% if c.hostname | default("") and c.hostname | default("") != "\"\"" %}
+        {% set _ = mist_client_stats_txt.append("~~~~~~" + c.ip | default("0.0.0.0") + " (" + c.hostname + "):") %}
+      {% else %}
+        {% set _ = mist_client_stats_txt.append("~~~~~~" + c.ip | default("0.0.0.0") + ":") %}
+      {% endif %}
+      {% if c.rssi | int > -70 %}
+        {% set _ = mist_client_stats_txt.append("~~~~~~~~RSSI: " + c.rssi | string) %}
+      {% else %}
+        {% set _ = mist_client_stats_txt.append("~~~~~~~~RSSI: " + c.rssi | string + " 🔴") %}
+      {% endif %}
+      {% if c.snr | int > 25 %}
+        {% set _ = mist_client_stats_txt.append("~~~~~~~~SNR: " + c.snr | string) %}
+      {% else %}
+        {% set _ = mist_client_stats_txt.append("~~~~~~~~SNR: " + c.snr | string + " 🔴") %}
+      {% endif %}
+      {% set _ = mist_client_stats_txt.append("~~~~~~~~SSID: " + c.ssid) %}
+      {% set _ = mist_client_stats_txt.append("~~~~~~~~Channel: " + c.channel | string) %}
+      {% set _ = mist_client_stats_txt.append("~~~~~~~~MAC Address: " + c.mac) %}
+      {% set _ = mist_client_stats_txt.append("~~~~~~~~Username: " + c.username | default("")) %}
+    {% endfor %}
+  {% else %}
+    {% set ns.issue_found = true %}
+    {% set _ = mist_client_stats_txt.append("RSSI: N/A 🔴") %}
+  {% endif %}
+  {% set mist_client_stats_txt = mist_client_stats_txt | join("\n") | regex_replace("~", " ") | regex_replace("^\s+", "") %}
+{% endif %}
+{#  #}
+{#  #}
+{# Recommended Next Steps #}
+{% set sdwan_all_private_down = true if sdwan_store and
+                                          (sdwan_sessions.private.count > 0 and
+                                          sdwan_sessions.private.count == sdwan_sessions.private.down) else false %}
+{% set sdwan_all_internet_down = true if sdwan_store and
+                                          (sdwan_sessions.internet.count > 0 and
+                                          sdwan_sessions.internet.count == sdwan_sessions.internet.down) else false %}
+{% set store_reachable = true if store_switch_pingable or store_router_pingable else false %}
+{% set recommendations = [] %}
+{% if ns.issue_found or
+      sdwan_all_private_down or
+      sdwan_all_internet_down or
+      not store_reachable %}
+  {# Specific recommendations #}
+  {% if not store_reachable %}
+    {% set _ = recommendations.append("⏺ Store is not reachable, call the store MOD to verify power") %}
+  {% else %}
+    {# All other specific recommendations #}
+    {% if sdwan_all_private_down %}
+      {% set _ = recommendations.append("⏺ All SD-WAN private tunnels are down, confirm that a Verizon support case was auto created and update the incident with the details") %}
+    {% endif %}
+    {% if sdwan_all_internet_down %}
+      {% set _ = recommendations.append("⏺ All SD-WAN internet tunnels are down, open a ticket with Granite and update the incident with the details") %}
+    {% endif %}
+    {% if not sdwan_store and not bb_tunnel_up %}
+      {% set _ = recommendations.append("⏺ Broadband tunnel is down, open a ticket with Granite and update the incident with the details") %}
+    {% endif %}
+    {% if not internet_reachable and
+          mpls_path_up and
+          store_router_pingable and
+          store_switch_pingable %}
+      {% set _ = recommendations.append("⏺ Internet is not reachable, escalate to DNL3") %}
+    {% elif not internet_reachable %}
+      {% set _ = recommendations.append("⏺ Internet is not reachable, open a ticket with Granite and update the incident with the details") %}
+    {% endif %}
+    {% if not store_wide_web_reachable and
+          mpls_path_up and
+          dns_resolves and
+          store_router_pingable and
+          store_switch_pingable %}
+      {% set _ = recommendations.append("⏺ Store Wide Web is not reachable, contact Store App Support") %}
+    {% endif %}
+    {% if switch_uptime != "unknown" and not switch_uptime | regex_search("hour", multiline=False, ignorecase=False) %}
+      {% set _ = recommendations.append("⏺ Store switch uptime is less than one hour, check other device uptimes to determine if there was a storewide power outage") %}
+    {% endif %}
+  {% endif %}
+  {# General recommendation #}
+  {% set _ = recommendations.append("⏺ Review all issues in the below Store Analysis section") %}
+{% else %}
+  {# Default recommendation #}
+  {% set _ = recommendations.append("⏺ Look for latency issues in this diagnostic report") %}
+{% endif %}
+{% set recommendations = recommendations | join("\n") %}
+{#  #}
+{#  #}
+{#  #}
+{# Build Diagnostic Work Notes #}
+<h3>Recommended Next Steps</h3>
+<pre style="background-color: transparent; border-width: 0">
+{{ recommendations }}
+
+</pre>
+<h3>Store Analysis</h3>
+<pre style="background-color: transparent; border-width: 0">
+Store Switch:
+  Pingable: {{ store_switch_pingable_txt }}
+  Uptime: {{ store_switch_uptime_txt }}
+Store Router:
+  Pingable: {{ store_router_pingable_txt }}
+MPLS Path: {{ mpls_path_state }}
+{% if not sdwan_store %}
+Broadband Tunnel: {{ bb_tunnel_state }}
+{% endif %}
+Internet Reachable: {{ internet_reachable_txt }}
+Internet Egress: {{ store_internet_egress_txt }}
+DNS Resolution Functional: {{ dns_resolves_txt }}
+Williams Sonoma Site (williams-sonoma.com) Reachable: {{ ws_site_reachable_txt }}
+Store Wide Web Site ({{ storesweb_fqdn }} ) Reachable: {{ store_wide_web_reachable_txt }}
+Verifone API (api.vfipayna.com) Reachable: {{ verifone_api_reachable_txt }}
+Verifone Active Firewall Sessions:
+  Ashburn: {{ active_verifone_sessions_ashburn_txt }}
+  Rocklin: {{ active_verifone_sessions_rocklin_txt }}
+  Sacramento: {{ active_verifone_sessions_sacramento_txt }}
+{% if sdwan_store %}
+Cisco SD-WAN:
+  Tunnel Status:
+    {{ asbc_hub_router_txt }}
+    {{ rkat_hub_1_router_txt }}
+    {{ rkat_hub_2_router_txt }}
+  {{ tloc_stats_txt }}
+{% endif %}
+{% if mist_store %}
+Mist Wireless:
+  Site: {{ mist_site_txt }}
+  Connected APs: {{ connected_aps_txt }}
+  Connected Clients: {{ connected_clients_txt }}
+  {{ mist_wlans_txt }}
+  {{ mist_client_stats_txt }}
+{% endif %}
+</pre>
