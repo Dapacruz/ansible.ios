@@ -426,7 +426,7 @@
   {% set _ = recommendations.append("⏺ Review all issues in the below Store Analysis section") %}
 {% else %}
   {# Default recommendation #}
-  {% set _ = recommendations.append("⏺ Look for latency issues in this diagnostic report") %}
+  {% set _ = recommendations.append("⏺ Look for latency issues in the attached diagnostic report") %}
 {% endif %}
 {% set recommendations = recommendations | join("\n") %}
 {#  #}
