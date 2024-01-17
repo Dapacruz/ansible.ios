@@ -28,10 +28,6 @@
         regexp: "^(?!<)(.*)(?<!<br>)$"
         replace: "\\1<br>"
 
-    - name: Set work_notes fact
-      ansible.builtin.set_fact:
-        work_notes: "{{ lookup('ansible.builtin.file', '{{ output_dir }}/work_notes.txt') }}"
-
     - name: Update incident work notes
       servicenow.itsm.incident:
         instance:
@@ -40,7 +36,7 @@
           password: "{{ snow_password }}"
         number: "{{ snow_incident }}"
         other:
-          work_notes: "[code]{{ work_notes }}[/code]"
+          work_notes: "[code]{{ lookup('ansible.builtin.file', '{{ output_dir }}/work_notes.txt') }}[/code]"
 
     - name: Render diagnostic report
       ansible.builtin.template:
