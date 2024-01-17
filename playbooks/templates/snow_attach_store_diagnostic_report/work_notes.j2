@@ -210,7 +210,7 @@
         {% set _ = asbc_hub_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title()) %}
       {% else %}
         {% set ns.issue_found = true %}
-        {% set _ = asbc_hub_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title()) + " 🔴" %}
+        {% set _ = asbc_hub_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() + " 🔴") %}
         {% set _ = sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}
       {% endif %}
     {% endfor %}
@@ -230,7 +230,7 @@
         {% set _ = rkat_hub_1_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title()) %}
       {% else %}
         {% set ns.issue_found = true %}
-        {% set _ = rkat_hub_1_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title()) + " 🔴" %}
+        {% set _ = rkat_hub_1_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() + " 🔴") %}
         {% set _ = sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}
       {% endif %}
     {% endfor %}
@@ -250,7 +250,7 @@
         {% set _ = rkat_hub_2_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title()) %}
       {% else %}
         {% set ns.issue_found = true %}
-        {% set _ = rkat_hub_2_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title()) + " 🔴" %}
+        {% set _ = rkat_hub_2_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() + " 🔴") %}
         {% set _ = sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}
       {% endif %}
     {% endfor %}
@@ -280,7 +280,7 @@
           {% endif %}
         {% else %}
           {% set ns.issue_found = true %}
-          {% set _ = tloc_stats_txt.append("~~~~~~" + p.replace("_", " ") + ": " + " N/A 🔴") %}
+          {% set _ = tloc_stats_txt.append("~~~~~~" + p.replace("_", " ") + ": N/A 🔴") %}
         {% endif %}
       {% endfor %}
     {% endfor %}
