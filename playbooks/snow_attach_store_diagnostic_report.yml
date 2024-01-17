@@ -17,12 +17,12 @@
         - tasks/snow_attach_store_diagnostic_report/mist.yml
 
   post_tasks:
-    - name: Render work notes
+    - name: Render incident work notes
       ansible.builtin.template:
         src: templates/snow_attach_store_diagnostic_report/work_notes.j2
         dest: "{{ output_dir }}/work_notes.txt"
 
-    - name: Add HTML line breaks to work notes
+    - name: Add HTML line breaks to incident work notes
       ansible.builtin.replace:
         path: "{{ output_dir }}/work_notes.txt"
         regexp: "^(?!<)(.*)(?<!<br>)$"
