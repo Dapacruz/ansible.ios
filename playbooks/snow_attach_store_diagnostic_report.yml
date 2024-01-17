@@ -25,8 +25,8 @@
     - name: Add HTML line breaks to work notes
       ansible.builtin.replace:
         path: "{{ output_dir }}/work_notes.txt"
-        regexp: "^(?!<)(.*)(?<!<br />)$"
-        replace: "\\1<br />"
+        regexp: "^(?!<)(.*)(?<!<br>)$"
+        replace: "\\1<br>"
 
     - name: Set work_notes fact
       ansible.builtin.set_fact:
