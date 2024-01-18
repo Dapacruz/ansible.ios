@@ -9,7 +9,7 @@
         - work_notes
 
   tasks:
-    - name: Import tasks
+    - name: Include tasks
       ansible.builtin.include_tasks: "{{ item }}"
       loop:
         - tasks/snow_attach_store_diagnostic_report/servicenow.yml
