@@ -2,7 +2,7 @@
 {# Process Data #}
 {# Store Switch Pingable #}
 {% if not store_switch_ping.stderr | default("failed") %}
-  {% set store_switch_pingable = true if store_switch_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) else false %}
+  {% set store_switch_pingable = true if store_switch_ping.stdout | regex_search("Success rate is [1-9]", multiline=true, ignorecase=false) else false %}
   {% if store_switch_pingable %}
     {% set store_switch_pingable_txt = "Yes" %}
   {% else %}
@@ -29,7 +29,7 @@
 {#  #}
 {# Rocklin MPLS Router Pingable #}
 {% if not store_router_ping.stderr | default("failed") %}
-  {% set store_router_pingable = true if store_router_ping.stdout | regex_search("Success rate is [1-9]", multiline=True, ignorecase=False) else false %}
+  {% set store_router_pingable = true if store_router_ping.stdout | regex_search("Success rate is [1-9]", multiline=true, ignorecase=false) else false %}
   {% if store_router_pingable %}
     {% set store_router_pingable_txt = "Yes" %}
   {% else %}
@@ -45,7 +45,7 @@
 {#  #}
 {# MPLS Path #}
 {% if not store_subnet_lookup.stderr | default("failed") %}
-  {% set mpls_path_up = store_subnet_lookup.stdout_lines[5] | regex_search(store_subnet, multiline=True, ignorecase=False) %}
+  {% set mpls_path_up = store_subnet_lookup.stdout_lines[5] | regex_search(store_subnet, multiline=true, ignorecase=false) %}
   {% if mpls_path_up %}
     {% set mpls_path_state = "Up" %}
   {% else %}
@@ -62,7 +62,7 @@
 {# Broadband Tunnel #}
 {% if not sdwan_store %}
   {% if not store_bb_tunnel_status.stderr | default("failed") %}
-    {% set bb_tunnel_up = true if store_bb_tunnel_status.stdout | regex_search("prefixes\s[1-9]\d*\s*$", multiline=True, ignorecase=False) else false %}
+    {% set bb_tunnel_up = true if store_bb_tunnel_status.stdout | regex_search("prefixes\s[1-9]\d*\s*$", multiline=true, ignorecase=false) else false %}
     {% if bb_tunnel_up %}
       {% set bb_tunnel_state = "Up" %}
     {% else %}
@@ -79,7 +79,7 @@
 {#  #}
 {# Internet Reachable #}
 {% if not store_internet_egress.stderr | default("failed") %}
-  {% set internet_reachable = store_internet_egress.stdout | regex_search("8.8.8.8.+msec", multiline=True, ignorecase=False) or store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
+  {% set internet_reachable = store_internet_egress.stdout | regex_search("8.8.8.8.+msec", multiline=true, ignorecase=false) or store_switch_connect_ws_site.stdout | regex_search("Open", multiline=true, ignorecase=false) %}
   {% if internet_reachable %}
     {% set internet_reachable_txt = "Yes" %}
   {% else %}
@@ -95,11 +95,11 @@
 {#  #}
 {# Internet Egress #}
 {% if not store_internet_egress.stderr | default("failed") %}
-  {% if store_internet_egress.stdout | regex_search("asgi1", multiline=True, ignorecase=False) %}
+  {% if store_internet_egress.stdout | regex_search("asgi1", multiline=true, ignorecase=false) %}
     {% set store_internet_egress_txt = "Ashburn" %}
-  {% elif store_internet_egress.stdout | regex_search("rkat1", multiline=True, ignorecase=False)  %}
+  {% elif store_internet_egress.stdout | regex_search("rkat1", multiline=true, ignorecase=false)  %}
     {% set store_internet_egress_txt = "Rocklin" %}
-  {% elif store_internet_egress.stdout | regex_search("sast1", multiline=True, ignorecase=False)  %}
+  {% elif store_internet_egress.stdout | regex_search("sast1", multiline=true, ignorecase=false)  %}
     {% set store_internet_egress_txt = "Sacramento" %}
   {% else %}
     {% set ns.issue_found = true %}
@@ -113,7 +113,7 @@
 {#  #}
 {# DNS Test #}
 {% if not store_switch_dns_test.stderr | default("failed") %}
-  {% set dns_resolves = store_switch_dns_test.stdout | regex_search("Translating.+domain\sserver\s\(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\)\s\[OK\]", multiline=True, ignorecase=False) %}
+  {% set dns_resolves = store_switch_dns_test.stdout | regex_search("Translating.+domain\sserver\s\(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\)\s\[OK\]", multiline=true, ignorecase=false) %}
   {% if dns_resolves %}
     {% set dns_resolves_txt = "Yes" %}
   {% else %}
@@ -129,7 +129,7 @@
 {#  #}
 {# Williams Sonoma Site Reachable #}
 {% if not store_switch_connect_ws_site.stderr | default("failed") %}
-  {% if store_switch_connect_ws_site.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
+  {% if store_switch_connect_ws_site.stdout | regex_search("Open", multiline=true, ignorecase=false) %}
     {% set ws_site_reachable_txt = "Yes" %}
   {% else %}
     {% set ns.issue_found = true %}
@@ -143,7 +143,7 @@
 {#  #}
 {# Store Wide Web Reachable #}
 {% if not store_switch_connect_storesweb.stderr | default("failed") %}
-  {% set store_wide_web_reachable = store_switch_connect_storesweb.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
+  {% set store_wide_web_reachable = store_switch_connect_storesweb.stdout | regex_search("Open", multiline=true, ignorecase=false) %}
   {% if store_wide_web_reachable %}
     {% set store_wide_web_reachable_txt = "Yes" %}
   {% else %}
@@ -159,7 +159,7 @@
 {#  #}
 {# Verifone API Reachable #}
 {% if not store_switch_connect_verifone.stderr | default("failed") %}
-  {% if store_switch_connect_verifone.stdout | regex_search("Open", multiline=True, ignorecase=False) %}
+  {% if store_switch_connect_verifone.stdout | regex_search("Open", multiline=true, ignorecase=false) %}
     {% set verifone_api_reachable_txt = "Yes" %}
   {% else %}
     {% set ns.issue_found = true %}
@@ -415,7 +415,7 @@
           store_switch_pingable %}
       {% set _ = recommendations.append("⏺ Store Wide Web is not reachable, contact Store App Support") %}
     {% endif %}
-    {% if switch_uptime != "unknown" and not switch_uptime | regex_search("hour", multiline=False, ignorecase=False) %}
+    {% if switch_uptime | regex_search("^\d+\sminutes?$", multiline=false, ignorecase=false) %}
       {% set _ = recommendations.append("⏺ Store switch uptime is less than one hour, check other device uptimes to determine if there was a storewide power outage") %}
     {% endif %}
   {% endif %}
