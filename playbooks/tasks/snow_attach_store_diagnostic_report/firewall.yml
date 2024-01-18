@@ -15,7 +15,6 @@
       ansible.builtin.shell: "{{ playbook_dir }}/library/go/panos-cli firewall run commands --insecure --expect-timeout 60 --command 'show session all filter state active destination {{ verifone_ip }} | match {{ pin_pad_subnet_host_range_regex }}' {{ firewalls.asbc1_corp_edge }} | egrep '\\*{3} show|ACTIVE'"
       register: active_verifone_sessions_ashburn_job
       changed_when: false
-      ignore_errors: true
       async: 60
       poll: 0
 
@@ -23,7 +22,6 @@
       ansible.builtin.shell: "{{ playbook_dir }}/library/go/panos-cli firewall run commands --insecure --expect-timeout 60 --command 'show session all filter state active destination {{ verifone_ip }} | match {{ pin_pad_subnet_host_range_regex }}' {{ firewalls.rkat1_corp_edge }} | egrep '\\*{3} show|ACTIVE'"
       register: active_verifone_sessions_rocklin_job
       changed_when: false
-      ignore_errors: true
       async: 60
       poll: 0
 
@@ -31,7 +29,6 @@
       ansible.builtin.shell: "{{ playbook_dir }}/library/go/panos-cli firewall run commands --insecure --expect-timeout 60 --command 'show session all filter state active destination {{ verifone_ip }} | match {{ pin_pad_subnet_host_range_regex }}' {{ firewalls.sast1_corp_edge }} | egrep '\\*{3} show|ACTIVE'"
       register: active_verifone_sessions_sacramento_job
       changed_when: false
-      ignore_errors: true
       async: 60
       poll: 0
 
@@ -42,7 +39,6 @@
       until: jobs.finished
       retries: 60
       delay: 1
-      ignore_errors: true
       loop: "{{ [active_verifone_sessions_ashburn_job, active_verifone_sessions_rocklin_job, active_verifone_sessions_sacramento_job] }}"
       loop_control:
         loop_var: job
@@ -53,4 +49,6 @@
         active_verifone_sessions_rocklin: "{{ jobs.results[1] }}"
         active_verifone_sessions_sacramento: "{{ jobs.results[2] }}"
       when: verifone_ip | default("")
+  ignore_errors: true
   when: verifone_ip | default("")
+  tags: firewall

@@ -3,7 +3,10 @@
   hosts: localhost
   gather_facts: false
   roles:
-    - Output
+    - role: Output
+      tags:
+        - diagnostic_report
+        - work_notes
 
   tasks:
     - name: Import tasks
@@ -15,18 +18,21 @@
         - tasks/snow_attach_store_diagnostic_report/firewall.yml
         - tasks/snow_attach_store_diagnostic_report/vmanage.yml
         - tasks/snow_attach_store_diagnostic_report/mist.yml
+      tags: always
 
   post_tasks:
     - name: Render incident work notes
       ansible.builtin.template:
         src: templates/snow_attach_store_diagnostic_report/work_notes.j2
         dest: "{{ output_dir }}/work_notes.txt"
+      tags: work_notes
 
     - name: Add HTML line breaks to incident work notes
       ansible.builtin.replace:
         path: "{{ output_dir }}/work_notes.txt"
         regexp: "^(?!<)(.*)(?<!<br>)$"
         replace: "\\1<br>"
+      tags: work_notes
 
     - name: Update incident work notes
       servicenow.itsm.incident:
@@ -37,11 +43,15 @@
         number: "{{ snow_incident }}"
         other:
           work_notes: "[code]{{ lookup('ansible.builtin.file', '{{ output_dir }}/work_notes.txt') }}[/code]"
+      tags:
+        - work_notes
+        - publish
 
     - name: Render diagnostic report
       ansible.builtin.template:
         src: templates/snow_attach_store_diagnostic_report/diagnostic_report.j2
         dest: "{{ output_dir }}/{{ snow_incident | lower }}_store_diagnostic_report_{{ timestamp }}.txt"
+      tags: diagnostic_report
 
     - name: Attach diagnostic report to incident
       servicenow.itsm.incident:
@@ -52,3 +62,6 @@
         number: "{{ snow_incident }}"
         attachments:
           - path: "{{ output_dir }}/{{ snow_incident | lower }}_store_diagnostic_report_{{ timestamp }}.txt"
+      tags:
+        - diagnostic_report
+        - publish

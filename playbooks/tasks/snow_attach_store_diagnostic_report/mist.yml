@@ -1,5 +1,5 @@
 ---
-- name: Mist | Fetch wireless details
+- name: Mist | Fetch diagnostic data
   block:
     - name: Mist | Fetch sites
       ansible.builtin.uri:
@@ -58,7 +58,6 @@
       until: jobs.finished
       retries: 30
       delay: 1
-      ignore_errors: true
       loop: "{{ [mist_site_stats_job, mist_client_stats_job, mist_wlans_job] }}"
       loop_control:
         loop_var: job
@@ -70,3 +69,4 @@
         mist_wlans: "{{ jobs.results[2] }}"
   ignore_errors: true
   when: mist_store | default("")
+  tags: mist

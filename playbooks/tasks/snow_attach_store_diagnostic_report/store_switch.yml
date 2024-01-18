@@ -1,185 +1,177 @@
 ---
-- name: Store Switch | Create ios-cli configuration file
-  ansible.builtin.copy:
-    dest: /home/runner/.ios-cli.yml
-    content: |
-      apikey: "{{ panw_api_token }}"
-      user: "{{ ansible_user }}"
-      password: "{{ ansible_ssh_pass }}"
-  no_log: true
-  when: "'/home/runner/.ios-cli.yml' is not file"
+- name: Store Switch | Fetch diagnostic data
+  block:
+    - name: Store Switch | Create ios-cli configuration file
+      ansible.builtin.copy:
+        dest: /home/runner/.ios-cli.yml
+        content: |
+          apikey: "{{ panw_api_token }}"
+          user: "{{ ansible_user }}"
+          password: "{{ ansible_ssh_pass }}"
+      no_log: true
+      when: "'/home/runner/.ios-cli.yml' is not file"
 
-- name: Store Switch | Fetch name server configuration
-  ansible.builtin.command: >
-    {{ playbook_dir }}/library/go/ios-cli device run commands
-      --insecure
-      --expect-timeout 60
-      --command "show running-config | include ip name-server 10.10.10.10"
-      {{ store_switch }}
-  register: name_server_job
-  changed_when: false
+    - name: Store Switch | Fetch name server configuration
+      ansible.builtin.command: >
+        {{ playbook_dir }}/library/go/ios-cli device run commands
+          --insecure
+          --expect-timeout 60
+          --command "show running-config | include ip name-server 10.10.10.10"
+          {{ store_switch }}
+      register: name_server_job
+      changed_when: false
+      async: 60
+      poll: 0
+
+    - name: Store Switch | Fetch domain lookup configuration
+      ansible.builtin.command: >
+        {{ playbook_dir }}/library/go/ios-cli device run commands
+          --insecure
+          --expect-timeout 60
+          --command "show running-config | include no ip domain-lookup"
+          {{ store_switch }}
+      register: domain_lookup_job
+      changed_when: false
+      async: 60
+      poll: 0
+
+    - name: Store Switch | Wait for async jobs to finish
+      ansible.builtin.async_status:
+        jid: "{{ job.ansible_job_id }}"
+      register: jobs
+      until: jobs.finished
+      retries: 60
+      delay: 1
+      loop: "{{ [name_server_job, domain_lookup_job] }}"
+      loop_control:
+        loop_var: job
+
+    - name: Store Switch | Set DNS configuration facts
+      ansible.builtin.set_fact:
+        name_server: "{{ jobs.results[0] }}"
+        domain_lookup: "{{ jobs.results[1] }}"
+
+    - name: Store Switch | Enable DNS lookups
+      ansible.builtin.command: >
+        {{ playbook_dir }}/library/go/ios-cli device run commands
+          --insecure
+          --expect-timeout 60
+          --command "configure terminal"
+          --command "ip name-server 10.10.10.10"
+          --command "ip domain-lookup"
+          --command "end"
+          --command "copy running-config startup-config"
+          {{ store_switch }}
+      when: name_server.stdout_lines[5] == "" or domain_lookup.stdout_lines[5] == "no ip domain-lookup"
+
+    - name: Store Switch | Fetch switch uptime
+      ansible.builtin.command: >
+        {{ playbook_dir }}/library/go/ios-cli device run commands
+          --insecure
+          --expect-timeout 60
+          --command "show version | include uptime"
+          {{ store_switch }}
+      register: store_switch_uptime_job
+      changed_when: false
+      async: 60
+      poll: 0
+
+    - name: Store Switch | Trace route to the internet
+      ansible.builtin.command: >
+        {{ playbook_dir }}/library/go/ios-cli device run commands
+          --insecure
+          --expect-timeout 60
+          --command "traceroute 8.8.8.8"
+          {{ store_switch }}
+      register: store_internet_egress_job
+      changed_when: false
+      async: 60
+      poll: 0
+
+    - name: Store Switch | Test DNS resolution
+      ansible.builtin.command: >
+        {{ playbook_dir }}/library/go/ios-cli device run commands
+          --insecure
+          --expect-timeout 60
+          --command "ping {{ verifone_fqdn }} repeat 1"
+          {{ store_switch }}
+      register: store_switch_dns_test_job
+      changed_when: false
+      async: 60
+      poll: 0
+
+    - name: Store Switch | Wait for async jobs to finish
+      ansible.builtin.async_status:
+        jid: "{{ job.ansible_job_id }}"
+      register: jobs
+      until: jobs.finished
+      retries: 60
+      delay: 1
+      loop: "{{ [store_switch_uptime_job, store_internet_egress_job, store_switch_dns_test_job] }}"
+      loop_control:
+        loop_var: job
+
+    - name: Store Switch | Set store facts
+      ansible.builtin.set_fact:
+        store_switch_uptime: "{{ jobs.results[0] }}"
+        store_internet_egress: "{{ jobs.results[1] }}"
+        store_switch_dns_test: "{{ jobs.results[2] }}"
+
+    - name: Store Switch | Set verifone_ip fact
+      ansible.builtin.set_fact:
+        verifone_ip: "{{ store_switch_dns_test.stdout | default('') | regex_search('(?<=ICMP Echos to )\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}', multiline=False, ignorecase=False) }}"
+
+    - name: Store Switch | Connect to Williams Sonoma site
+      ansible.builtin.command: >
+        {{ playbook_dir }}/library/go/ios-cli device run commands
+          --insecure
+          --expect-timeout 60
+          --command "connect www.williams-sonoma.com 443"
+          {{ store_switch }}
+      register: store_switch_connect_ws_site_job
+      changed_when: false
+      async: 60
+      poll: 0
+
+    - name: Store Switch | Connect to Store Wide Web site
+      ansible.builtin.command: >
+        {{ playbook_dir }}/library/go/ios-cli device run commands
+          --insecure
+          --expect-timeout 60
+          --command "connect {{ storesweb_fqdn }} 443"
+          {{ store_switch }}
+      register: store_switch_connect_storesweb_job
+      changed_when: false
+      async: 60
+      poll: 0
+
+    - name: Store Switch | Connect to Verifone API
+      ansible.builtin.command: >
+        {{ playbook_dir }}/library/go/ios-cli device run commands
+          --insecure
+          --expect-timeout 60
+          --command "connect {{ verifone_fqdn }} 443"
+          {{ store_switch }}
+      register: store_switch_connect_verifone_job
+      changed_when: false
+      async: 60
+      poll: 0
+
+    - name: Store Switch | Wait for async jobs to finish
+      ansible.builtin.async_status:
+        jid: "{{ job.ansible_job_id }}"
+      register: jobs
+      until: jobs.finished
+      retries: 60
+      delay: 1
+      loop: "{{ [store_switch_connect_ws_site_job, store_switch_connect_storesweb_job, store_switch_connect_verifone_job] }}"
+      loop_control:
+        loop_var: job
+
+    - name: Store Switch | Set store facts
+      ansible.builtin.set_fact:
+        store_switch_connect_ws_site: "{{ jobs.results[0] }}"
+        store_switch_connect_storesweb: "{{ jobs.results[1] }}"
+        store_switch_connect_verifone: "{{ jobs.results[2] }}"
   ignore_errors: true
-  async: 60
-  poll: 0
-
-- name: Store Switch | Fetch domain lookup configuration
-  ansible.builtin.command: >
-    {{ playbook_dir }}/library/go/ios-cli device run commands
-      --insecure
-      --expect-timeout 60
-      --command "show running-config | include no ip domain-lookup"
-      {{ store_switch }}
-  register: domain_lookup_job
-  changed_when: false
-  ignore_errors: true
-  async: 60
-  poll: 0
-
-- name: Store Switch | Wait for async jobs to finish
-  ansible.builtin.async_status:
-    jid: "{{ job.ansible_job_id }}"
-  register: jobs
-  until: jobs.finished
-  retries: 60
-  delay: 1
-  ignore_errors: true
-  loop: "{{ [name_server_job, domain_lookup_job] }}"
-  loop_control:
-    loop_var: job
-
-- name: Store Switch | Set DNS configuration facts
-  ansible.builtin.set_fact:
-    name_server: "{{ jobs.results[0] }}"
-    domain_lookup: "{{ jobs.results[1] }}"
-
-- name: Store Switch | Enable DNS lookups
-  ansible.builtin.command: >
-    {{ playbook_dir }}/library/go/ios-cli device run commands
-      --insecure
-      --expect-timeout 60
-      --command "configure terminal"
-      --command "ip name-server 10.10.10.10"
-      --command "ip domain-lookup"
-      --command "end"
-      --command "copy running-config startup-config"
-      {{ store_switch }}
-  ignore_errors: true
-  when: name_server.stdout_lines[5] == "" or domain_lookup.stdout_lines[5] == "no ip domain-lookup"
-
-- name: Store Switch | Fetch switch uptime
-  ansible.builtin.command: >
-    {{ playbook_dir }}/library/go/ios-cli device run commands
-      --insecure
-      --expect-timeout 60
-      --command "show version | include uptime"
-      {{ store_switch }}
-  register: store_switch_uptime_job
-  changed_when: false
-  ignore_errors: true
-  async: 60
-  poll: 0
-
-- name: Store Switch | Trace route to the internet
-  ansible.builtin.command: >
-    {{ playbook_dir }}/library/go/ios-cli device run commands
-      --insecure
-      --expect-timeout 60
-      --command "traceroute 8.8.8.8"
-      {{ store_switch }}
-  register: store_internet_egress_job
-  changed_when: false
-  ignore_errors: true
-  async: 60
-  poll: 0
-
-- name: Store Switch | Test DNS resolution
-  ansible.builtin.command: >
-    {{ playbook_dir }}/library/go/ios-cli device run commands
-      --insecure
-      --expect-timeout 60
-      --command "ping {{ verifone_fqdn }} repeat 1"
-      {{ store_switch }}
-  register: store_switch_dns_test_job
-  changed_when: false
-  ignore_errors: true
-  async: 60
-  poll: 0
-
-- name: Store Switch | Wait for async jobs to finish
-  ansible.builtin.async_status:
-    jid: "{{ job.ansible_job_id }}"
-  register: jobs
-  until: jobs.finished
-  retries: 60
-  delay: 1
-  ignore_errors: true
-  loop: "{{ [store_switch_uptime_job, store_internet_egress_job, store_switch_dns_test_job] }}"
-  loop_control:
-    loop_var: job
-
-- name: Store Switch | Set store facts
-  ansible.builtin.set_fact:
-    store_switch_uptime: "{{ jobs.results[0] }}"
-    store_internet_egress: "{{ jobs.results[1] }}"
-    store_switch_dns_test: "{{ jobs.results[2] }}"
-
-- name: Store Switch | Set verifone_ip fact
-  ansible.builtin.set_fact:
-    verifone_ip: "{{ store_switch_dns_test.stdout | default('') | regex_search('(?<=ICMP Echos to )\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}', multiline=False, ignorecase=False) }}"
-
-- name: Store Switch | Connect to Williams Sonoma site
-  ansible.builtin.command: >
-    {{ playbook_dir }}/library/go/ios-cli device run commands
-      --insecure
-      --expect-timeout 60
-      --command "connect www.williams-sonoma.com 443"
-      {{ store_switch }}
-  register: store_switch_connect_ws_site_job
-  changed_when: false
-  ignore_errors: true
-  async: 60
-  poll: 0
-
-- name: Store Switch | Connect to Store Wide Web site
-  ansible.builtin.command: >
-    {{ playbook_dir }}/library/go/ios-cli device run commands
-      --insecure
-      --expect-timeout 60
-      --command "connect {{ storesweb_fqdn }} 443"
-      {{ store_switch }}
-  register: store_switch_connect_storesweb_job
-  changed_when: false
-  ignore_errors: true
-  async: 60
-  poll: 0
-
-- name: Store Switch | Connect to Verifone API
-  ansible.builtin.command: >
-    {{ playbook_dir }}/library/go/ios-cli device run commands
-      --insecure
-      --expect-timeout 60
-      --command "connect {{ verifone_fqdn }} 443"
-      {{ store_switch }}
-  register: store_switch_connect_verifone_job
-  changed_when: false
-  ignore_errors: true
-  async: 60
-  poll: 0
-
-- name: Store Switch | Wait for async jobs to finish
-  ansible.builtin.async_status:
-    jid: "{{ job.ansible_job_id }}"
-  register: jobs
-  until: jobs.finished
-  retries: 60
-  delay: 1
-  ignore_errors: true
-  loop: "{{ [store_switch_connect_ws_site_job, store_switch_connect_storesweb_job, store_switch_connect_verifone_job] }}"
-  loop_control:
-    loop_var: job
-
-- name: Store Switch | Set store facts
-  ansible.builtin.set_fact:
-    store_switch_connect_ws_site: "{{ jobs.results[0] }}"
-    store_switch_connect_storesweb: "{{ jobs.results[1] }}"
-    store_switch_connect_verifone: "{{ jobs.results[2] }}"
+  tags: store_switch
