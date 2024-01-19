@@ -294,7 +294,8 @@
   {# Mist Site #}
   {% if mist_site_stats.json | default("") %}
     {% set mist_site_txt = mist_site_stats.json.name %}
-    {% if mist_site_stats.json.num_ap_connected == mist_site_stats.json.num_ap %}
+    {% set all_aps_connected = mist_site_stats.json.num_ap_connected == mist_site_stats.json.num_ap %}
+    {% if all_aps_connected %}
       {% set connected_aps_txt = mist_site_stats.json.num_ap_connected | string + "/" + mist_site_stats.json.num_ap | string %}
     {% else %}
       {% set ns.issue_found = true %}
@@ -360,7 +361,7 @@
       {% else %}
         {% set _ = mist_client_stats_txt.append("~~~~~~~~SNR: " + c.snr | string + " 🔴") %}
       {% endif %}
-      {% set _ = mist_client_stats_txt.append("~~~~~~~~SSID: " + c.ssid) %}
+      {% set _ = mist_client_stats_txt.append("~~~~~~~~SSID: " + c.ssid | default("")) %}
       {% set _ = mist_client_stats_txt.append("~~~~~~~~Channel: " + c.channel | string) %}
       {% set _ = mist_client_stats_txt.append("~~~~~~~~MAC Address: " + c.mac) %}
       {% set _ = mist_client_stats_txt.append("~~~~~~~~Username: " + c.username | default("")) %}
@@ -385,7 +386,8 @@
 {% if ns.issue_found or
       sdwan_all_private_down or
       sdwan_all_internet_down or
-      not store_reachable %}
+      not store_reachable or
+      not all_aps_connected %}
   {# Specific recommendations #}
   {% if not store_reachable %}
     {% set _ = recommendations.append("⏺ Store is not reachable, call the store MOD to verify power") %}
@@ -417,6 +419,9 @@
     {% endif %}
     {% if switch_uptime | regex_search("^\d+\sminutes?$", multiline=false, ignorecase=false) %}
       {% set _ = recommendations.append("⏺ Store switch uptime is less than one hour, check other device uptimes to determine if there was a storewide power outage") %}
+    {% endif %}
+    {% if not all_aps_connected %}
+      {% set _ = recommendations.append("⏺ One or more Mist access points are disconnected, troubleshoot and restore connectivity") %}
     {% endif %}
   {% endif %}
   {# General recommendation #}
