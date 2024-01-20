@@ -387,7 +387,7 @@
       sdwan_all_private_down or
       sdwan_all_internet_down or
       not store_reachable or
-      not all_aps_connected %}
+      (mist_store and not all_aps_connected) %}
   {# Specific recommendations #}
   {% if not store_reachable %}
     {% set _ = recommendations.append("⏺ Store is not reachable, call the store MOD to verify power") %}
