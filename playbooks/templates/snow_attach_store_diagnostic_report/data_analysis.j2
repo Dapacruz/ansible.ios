@@ -420,8 +420,10 @@
     {% if switch_uptime | regex_search("^\d+\sminutes?$", multiline=false, ignorecase=false) %}
       {% set _ = recommendations.append("⏺ Store switch uptime is less than one hour, check other device uptimes to determine if there was a storewide power outage") %}
     {% endif %}
-    {% if not all_aps_connected %}
-      {% set _ = recommendations.append("⏺ One or more Mist access points are disconnected, troubleshoot and restore connectivity") %}
+    {% if mist_store %}
+      {% if not all_aps_connected %}
+        {% set _ = recommendations.append("⏺ One or more Mist access points are disconnected, troubleshoot and restore connectivity") %}
+      {% endif %}
     {% endif %}
   {% endif %}
   {# General recommendation #}
