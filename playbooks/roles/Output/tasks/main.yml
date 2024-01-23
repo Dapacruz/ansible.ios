@@ -12,7 +12,7 @@
 
 - name: Set output_dir fact
   ansible.builtin.set_fact:
-    output_dir: "{{playbook_dir}}/output/{{ inventory_hostname_short }}"
+    output_dir: "{{ playbook_dir }}/output/{{ inventory_hostname_short }}"
 
 - name: Remove output directory
   ansible.builtin.file:

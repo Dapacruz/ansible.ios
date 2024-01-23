@@ -11,11 +11,14 @@
 Store Switch:
   Pingable: {{ da.store_switch_pingable_txt }}
   Uptime: {{ da.store_switch_uptime_txt }}
+  {{ da.cdp_neighbors_txt }}
 Store Router:
   Pingable: {{ da.store_router_pingable_txt }}
 MPLS Path: {{ da.mpls_path_state }}
 {% if not sdwan_store %}
-Broadband Tunnel: {{ da.bb_tunnel_state }}
+Broadband Tunnel:
+  State: {{ da.bb_tunnel_state }}
+  MTU Test: {{ da.bb_tunnel_mtu_test_txt }}
 {% endif %}
 Internet Reachable: {{ da.internet_reachable_txt }}
 Internet Egress: {{ da.store_internet_egress_txt }}

@@ -24,11 +24,14 @@ Mist Wireless: {% if mist_store %}Yes{% else %}No{% endif +%}
 Store Switch:
   Pingable: {{ da.store_switch_pingable_txt }}
   Uptime: {{ da.store_switch_uptime_txt }}
+  {{ da.cdp_neighbors_txt }}
 Store Router:
   Pingable: {{ da.store_router_pingable_txt }}
 MPLS Path: {{ da.mpls_path_state }}
 {% if not sdwan_store %}
-Broadband Tunnel: {{ da.bb_tunnel_state }}
+Broadband Tunnel:
+  State: {{ da.bb_tunnel_state }}
+  MTU Test: {{ da.bb_tunnel_mtu_test_txt }}
 {% endif %}
 Internet Reachable: {{ da.internet_reachable_txt }}
 Internet Egress: {{ da.store_internet_egress_txt }}
@@ -196,6 +199,25 @@ Mist Wireless:
   {% endif %}
 
 
+##### Rocklin MPLS Router: Test broadband tunnel MTU ##############################
+
+  {% if not store_bb_tunnel_mtu_test.stderr | default("failed") %}
+    {% for item in store_bb_tunnel_mtu_test.stdout_lines[4:-4] %}
+      {# Strip ASCII control characters #}
+      {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
+      {% if "***" in item %}
+        {{- item | regex_replace("\s?\*{3}\s?", "") }}
+
+      {% else %}
+        {{- item }}
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    {% set na = "N/A" %}
+    {{- na }}
+  {% endif %}
+
+
 {% endif %}
 {% if mist_store %}
 ##### Mist: Sites ##############################
@@ -262,6 +284,25 @@ Mist Wireless:
 
 {% if not store_switch_dns_test.stderr | default("failed") %}
   {% for item in store_switch_dns_test.stdout_lines[4:-4] %}
+    {# Strip ASCII control characters #}
+    {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
+    {% if "***" in item %}
+      {{- item | regex_replace("\s?\*{3}\s?", "") }}
+
+    {% else %}
+      {{- item }}
+  {% endif %}
+  {% endfor %}
+{% else %}
+  {% set na = "N/A" %}
+  {{- na }}
+{% endif %}
+
+
+##### Store Switch: CDP Neighbors ##############################
+
+{% if not store_switch_cdp_neighbors.stderr | default("failed") %}
+  {% for item in store_switch_cdp_neighbors.stdout_lines[4:-4] %}
     {# Strip ASCII control characters #}
     {% set item = item | regex_replace("[^\x20-\x7e]", "") %}
     {% if "***" in item %}

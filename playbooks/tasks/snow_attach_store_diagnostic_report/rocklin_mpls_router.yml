@@ -36,6 +36,21 @@
       poll: 0
       when: not sdwan_store
 
+    - name: Rocklin MPLS Router | Test broadband tunnel MTU
+      ansible.builtin.command: >
+        {{ playbook_dir }}/library/go/ios-cli device run commands
+          --insecure
+          --expect-timeout 60
+          --command "ping ip {{ store_bb_tun1 }} repeat 3 source tun1 size 1500"
+          --command "ping ip {{ store_bb_tun1 }} repeat 3 source tun1 size 1450"
+          --command "ping ip {{ store_bb_tun1 }} repeat 3 source tun1 size 1400"
+          {{ rocklin_mpls_router }}
+      register: store_bb_tunnel_mtu_test_job
+      changed_when: false
+      async: 60
+      poll: 0
+      when: not sdwan_store
+
     - name: Rocklin MPLS Router | Fetch store broadband VPN tunnel down count
       ansible.builtin.command: >
         {{ playbook_dir }}/library/go/ios-cli device run commands
@@ -80,7 +95,7 @@
       until: jobs.finished
       retries: 60
       delay: 1
-      loop: "{{ [store_bb_tunnel_status_job, store_vpn_down_count_job] }}"
+      loop: "{{ [store_bb_tunnel_status_job, store_bb_tunnel_mtu_test_job, store_vpn_down_count_job] }}"
       loop_control:
         loop_var: job
       when: not sdwan_store
@@ -88,7 +103,8 @@
     - name: Rocklin MPLS Router | Set broadband tunnel facts
       ansible.builtin.set_fact:
         store_bb_tunnel_status: "{{ jobs.results[0] }}"
-        store_vpn_down_count: "{{ jobs.results[1] }}"
+        store_bb_tunnel_mtu_test: "{{ jobs.results[1] }}"
+        store_vpn_down_count: "{{ jobs.results[2] }}"
       when: not sdwan_store
 
     - name: Rocklin MPLS Router | Wait for async jobs to finish

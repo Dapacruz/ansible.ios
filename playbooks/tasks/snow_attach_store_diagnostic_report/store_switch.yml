@@ -100,6 +100,18 @@
       async: 60
       poll: 0
 
+    - name: Store Switch | Fetch CDP neighbors
+      ansible.builtin.command: >
+        {{ playbook_dir }}/library/go/ios-cli device run commands
+          --insecure
+          --expect-timeout 60
+          --command "show cdp neighbors detail"
+          {{ store_switch }}
+      register: store_switch_cdp_neighbors_job
+      changed_when: false
+      async: 60
+      poll: 0
+
     - name: Store Switch | Wait for async jobs to finish
       ansible.builtin.async_status:
         jid: "{{ job.ansible_job_id }}"
@@ -107,7 +119,7 @@
       until: jobs.finished
       retries: 60
       delay: 1
-      loop: "{{ [store_switch_uptime_job, store_internet_egress_job, store_switch_dns_test_job] }}"
+      loop: "{{ [store_switch_uptime_job, store_internet_egress_job, store_switch_dns_test_job, store_switch_cdp_neighbors_job] }}"
       loop_control:
         loop_var: job
 
@@ -116,6 +128,7 @@
         store_switch_uptime: "{{ jobs.results[0] }}"
         store_internet_egress: "{{ jobs.results[1] }}"
         store_switch_dns_test: "{{ jobs.results[2] }}"
+        store_switch_cdp_neighbors: "{{ jobs.results[3] }}"
 
     - name: Store Switch | Set verifone_ip fact
       ansible.builtin.set_fact:

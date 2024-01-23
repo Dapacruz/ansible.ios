@@ -27,6 +27,28 @@
 {% endif %}
 {#  #}
 {#  #}
+{# Store Switch CDP Neighbors #}
+{% if not store_switch_cdp_neighbors.stderr | default("failed") %}
+  {% set cdp_neighbors = (store_switch_cdp_neighbors.stdout | split("Device ID: ") | default([]))[1:] %}
+  {% if cdp_neighbors %}
+    {% set cdp_neighbors_txt = ["CDP Neighbors:"] %}
+    {% for e in cdp_neighbors %}
+      {# Device ID #}
+      {% set _ = cdp_neighbors_txt.append("    " + e | regex_search("^[^\s]+(?=\r\n)", multiline=true, ignorecase=false) | regex_replace("\(", " (") + ":" )%}
+      {% set _ = cdp_neighbors_txt.append("      IP Address: " + e | regex_search("(?<=Entry address\(es\): \r\n  IP address: ).+(?=\r\n)", multiline=true, ignorecase=false) )%}
+      {% set _ = cdp_neighbors_txt.append("      Interface: " + e | regex_search("(?<=Interface: ).+(?=,)", multiline=true, ignorecase=false) )%}
+      {% set _ = cdp_neighbors_txt.append("      Port ID (Outgoing Port): " + e | regex_search("(?<=Port ID \(outgoing port\): ).+(?=\r\n)", multiline=true, ignorecase=false) )%}
+    {% endfor %}
+    {% set  cdp_neighbors_txt = cdp_neighbors_txt | join("\n") %}
+  {% else %}
+    {% set cdp_neighbors_txt = "CDP Neighbors: None" %}
+  {% endif %}
+{% else %}
+  {% set ns.issue_found = true %}
+  {% set cdp_neighbors_txt = "CDP Neighbors: N/A 🔴" %}
+{% endif %}
+{#  #}
+{#  #}
 {# Rocklin MPLS Router Pingable #}
 {% if not store_router_ping.stderr | default("failed") %}
   {% set store_router_pingable = true if store_router_ping.stdout | regex_search("Success rate is [1-9]", multiline=true, ignorecase=false) else false %}
@@ -59,8 +81,8 @@
 {% endif %}
 {#  #}
 {#  #}
-{# Broadband Tunnel #}
 {% if not sdwan_store %}
+  {# Broadband Tunnel State #}
   {% if not store_bb_tunnel_status.stderr | default("failed") %}
     {% set bb_tunnel_up = true if store_bb_tunnel_status.stdout | regex_search("prefixes\s[1-9]\d*\s*$", multiline=true, ignorecase=false) else false %}
     {% if bb_tunnel_up %}
@@ -73,6 +95,22 @@
     {% set ns.issue_found = true %}
     {% set bb_tunnel_up = "unknown" %}
     {% set bb_tunnel_state = "N/A 🔴" %}
+  {% endif %}
+  {#  #}
+  {#  #}
+  {# Broadband MTU Test #}
+  {% if bb_tunnel_up == true and not store_bb_tunnel_mtu_test.stderr | default("failed") %}
+    {% set bb_tunnel_mtu_test_pass = true if not store_bb_tunnel_mtu_test.stdout | regex_search("Success rate is 0 percent", multiline=true, ignorecase=false) else false %}
+    {% if bb_tunnel_mtu_test_pass %}
+      {% set bb_tunnel_mtu_test_txt = "Pass" %}
+    {% else %}
+      {% set ns.issue_found = true %}
+      {% set bb_tunnel_mtu_test_txt = "Fail 🔴" %}
+    {% endif %}
+  {% else %}
+    {% set ns.issue_found = true %}
+    {% set bb_tunnel_mtu_test_pass = "unknown" %}
+    {% set bb_tunnel_mtu_test_txt = "N/A 🔴" %}
   {% endif %}
 {% endif %}
 {#  #}
