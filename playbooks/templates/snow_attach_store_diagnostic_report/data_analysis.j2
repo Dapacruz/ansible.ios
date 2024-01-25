@@ -424,8 +424,7 @@
 {% if ns.issue_found or
       sdwan_all_private_down or
       sdwan_all_internet_down or
-      not store_reachable or
-      (mist_store and not all_aps_connected) %}
+      not store_reachable %}
   {# Specific recommendations #}
   {% if not store_reachable %}
     {% set _ = recommendations.append("⏺ Store is not reachable, call the store MOD to verify power") %}
@@ -437,8 +436,13 @@
     {% if sdwan_all_internet_down %}
       {% set _ = recommendations.append("⏺ All SD-WAN internet tunnels are down, open a ticket with Granite and update the incident with the details") %}
     {% endif %}
-    {% if not sdwan_store and not bb_tunnel_up %}
-      {% set _ = recommendations.append("⏺ Broadband tunnel is down, open a ticket with Granite and update the incident with the details") %}
+    {% if not sdwan_store %}
+      {% if not bb_tunnel_up %}
+        {% set _ = recommendations.append("⏺ Broadband tunnel is down, open a ticket with Granite and update the incident with the details") %}
+      {% endif %}
+      {% if not bb_tunnel_mtu_test_pass %}
+        {% set _ = recommendations.append("⏺ Broadband tunnel MTU is misconfigured, escalate to DNL3") %}
+      {% endif %}
     {% endif %}
     {% if not internet_reachable and
           mpls_path_up and
