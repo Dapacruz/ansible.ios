@@ -24,4 +24,5 @@
   ansible.builtin.file:
     state: directory
     path: "{{ output_dir }}"
+    mode: "755"
   delegate_to: localhost
