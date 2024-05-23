@@ -242,10 +242,10 @@
       {% set session_type = s["local-color"] | regex_replace("(\d$)|(^biz-)", "") %}
       {% set _ = sdwan_sessions[session_type].update({ "count": sdwan_sessions[session_type]["count"] + 1 })  %}
       {% if s.state == "up" %}
-        {% set _ = asbc_hub_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title()) %}
+        {% set _ = asbc_hub_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() | default("N/A")) %}
       {% else %}
         {% set ns.issue_found = true %}
-        {% set _ = asbc_hub_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() + " 🔴") %}
+        {% set _ = asbc_hub_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() | default("N/A") + " 🔴") %}
         {% set _ = sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}
       {% endif %}
     {% endfor %}
@@ -262,10 +262,10 @@
       {% set session_type = s["local-color"] | regex_replace("(\d$)|(^biz-)", "") %}
       {% set _ = sdwan_sessions[session_type].update({ "count": sdwan_sessions[session_type]["count"] + 1 })  %}
       {% if s.state == "up" %}
-        {% set _ = rkat_hub_1_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title()) %}
+        {% set _ = rkat_hub_1_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() | default("N/A")) %}
       {% else %}
         {% set ns.issue_found = true %}
-        {% set _ = rkat_hub_1_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() + " 🔴") %}
+        {% set _ = rkat_hub_1_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() | default("N/A") + " 🔴") %}
         {% set _ = sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}
       {% endif %}
     {% endfor %}
@@ -282,10 +282,10 @@
       {% set session_type = s["local-color"] | regex_replace("(\d$)|(^biz-)", "") %}
       {% set _ = sdwan_sessions[session_type].update({ "count": sdwan_sessions[session_type]["count"] + 1 })  %}
       {% if s.state == "up" %}
-        {% set _ = rkat_hub_2_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title()) %}
+        {% set _ = rkat_hub_2_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() | default("N/A")) %}
       {% else %}
         {% set ns.issue_found = true %}
-        {% set _ = rkat_hub_2_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() + " 🔴") %}
+        {% set _ = rkat_hub_2_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() | default("N/A") + " 🔴") %}
         {% set _ = sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}
       {% endif %}
     {% endfor %}
@@ -309,9 +309,9 @@
           {% set stats_mean = "%.2f" | format(stats | sum / stats_count) %}
           {% if p == "vQoE_Score" and stats_mean | int <= 5 %}
             {% set ns.issue_found = true %}
-            {% set _ = tloc_stats_txt.append("~~~~~~" + p.replace("_", " ") + ": " + stats_mean + " 🔴") %}
+            {% set _ = tloc_stats_txt.append("~~~~~~" + p.replace("_", " ") + ": " + stats_mean | default("N/A") + " 🔴") %}
           {% else %}
-            {% set _ = tloc_stats_txt.append("~~~~~~" + p.replace("_", " ") + ": " + stats_mean) %}
+            {% set _ = tloc_stats_txt.append("~~~~~~" + p.replace("_", " ") + ": " + stats_mean | default("N/A")) %}
           {% endif %}
         {% else %}
           {% set ns.issue_found = true %}
@@ -367,15 +367,15 @@
     {% set rssi =  mist_client_stats.json | map(attribute='rssi') | sort %}
     {% set _ = mist_client_stats_txt.append("~~RSSI:") %}
     {% if rssi[-1] | int > -70 %}
-      {% set _ = mist_client_stats_txt.append("~~~~Best: " + rssi[-1] | string) %}
+      {% set _ = mist_client_stats_txt.append("~~~~Best: " + rssi[-1] | default("N/A") | string) %}
     {% else %}
       {% set ns.issue_found = true %}
-      {% set _ = mist_client_stats_txt.append("~~~~Best: " + rssi[-1] | string + " 🔴") %}
+      {% set _ = mist_client_stats_txt.append("~~~~Best: " + rssi[-1] | default("N/A") | string + " 🔴") %}
     {% endif %}
     {% if rssi[0] | int > -70 %}
-      {% set _ = mist_client_stats_txt.append("~~~~Worst: " + rssi[0] | string) %}
+      {% set _ = mist_client_stats_txt.append("~~~~Worst: " + rssi[0] | default("N/A") | string) %}
     {% else %}
-      {% set _ = mist_client_stats_txt.append("~~~~Worst: " + rssi[0] | string + " 🔴") %}
+      {% set _ = mist_client_stats_txt.append("~~~~Worst: " + rssi[0] | default("N/A") | string + " 🔴") %}
     {% endif %}
     {% if rssi[rssi | length // 2] | int > -70 %}
       {% set _ = mist_client_stats_txt.append("~~~~Median: " + rssi[rssi | length // 2] | string) %}
@@ -391,18 +391,18 @@
         {% set _ = mist_client_stats_txt.append("~~~~~~" + c.ip | default("0.0.0.0") + ":") %}
       {% endif %}
       {% if c.rssi | int > -70 %}
-        {% set _ = mist_client_stats_txt.append("~~~~~~~~RSSI: " + c.rssi | string) %}
+        {% set _ = mist_client_stats_txt.append("~~~~~~~~RSSI: " + c.rssi | default("N/A") | string) %}
       {% else %}
-        {% set _ = mist_client_stats_txt.append("~~~~~~~~RSSI: " + c.rssi | string + " 🔴") %}
+        {% set _ = mist_client_stats_txt.append("~~~~~~~~RSSI: " + c.rssi | default("N/A") | string + " 🔴") %}
       {% endif %}
       {% if c.snr | int > 25 %}
-        {% set _ = mist_client_stats_txt.append("~~~~~~~~SNR: " + c.snr | string) %}
+        {% set _ = mist_client_stats_txt.append("~~~~~~~~SNR: " + c.snr | default("N/A") | string) %}
       {% else %}
-        {% set _ = mist_client_stats_txt.append("~~~~~~~~SNR: " + c.snr | string + " 🔴") %}
+        {% set _ = mist_client_stats_txt.append("~~~~~~~~SNR: " + c.snr | default("N/A") | string + " 🔴") %}
       {% endif %}
-      {% set _ = mist_client_stats_txt.append("~~~~~~~~SSID: " + c.ssid | default("")) %}
-      {% set _ = mist_client_stats_txt.append("~~~~~~~~Channel: " + c.channel | string) %}
-      {% set _ = mist_client_stats_txt.append("~~~~~~~~MAC Address: " + c.mac) %}
+      {% set _ = mist_client_stats_txt.append("~~~~~~~~SSID: " + c.ssid | default("N/A") | default("")) %}
+      {% set _ = mist_client_stats_txt.append("~~~~~~~~Channel: " + c.channel | default("N/A") | string) %}
+      {% set _ = mist_client_stats_txt.append("~~~~~~~~MAC Address: " + c.mac | default("N/A")) %}
       {% set _ = mist_client_stats_txt.append("~~~~~~~~Username: " + c.username | default("")) %}
     {% endfor %}
   {% else %}
