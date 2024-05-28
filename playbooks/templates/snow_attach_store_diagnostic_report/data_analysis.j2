@@ -378,10 +378,10 @@
       {% set _ = mist_client_stats_txt.append("~~~~Worst: " + rssi[0] | default("N/A") | string + " 🔴") %}
     {% endif %}
     {% if rssi[rssi | length // 2] | int > -70 %}
-      {% set _ = mist_client_stats_txt.append("~~~~Median: " + rssi[rssi | length // 2] | string) %}
+      {% set _ = mist_client_stats_txt.append("~~~~Median: " + rssi[rssi | length // 2] | default("N/A") | string) %}
     {% else %}
       {% set ns.issue_found = true %}
-      {% set _ = mist_client_stats_txt.append("~~~~Median: " + rssi[rssi | length // 2] | string + " 🔴") %}
+      {% set _ = mist_client_stats_txt.append("~~~~Median: " + rssi[rssi | length // 2] | default("N/A") | string + " 🔴") %}
     {% endif %}
     {% set _ = mist_client_stats_txt.append("~~~~Top " + (mist_client_stats.json | sort(attribute="rssi"))[:5] | length | string + " Worst:") %}
     {% for c in (mist_client_stats.json | sort(attribute="rssi"))[:5] %}
