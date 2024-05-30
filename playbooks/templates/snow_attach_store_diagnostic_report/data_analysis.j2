@@ -246,7 +246,7 @@
       {% else %}
         {% set ns.issue_found = true %}
         {% set _ = asbc_hub_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() | default("N/A") + " 🔴") %}
-        {% set _ = sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}
+        {% set _ = sdwan_sessions[session_type].update({ "down": sdwan_sessions[session_type]["down"] + 1 })  %}
       {% endif %}
     {% endfor %}
   {% else %}
@@ -266,7 +266,7 @@
       {% else %}
         {% set ns.issue_found = true %}
         {% set _ = rkat_hub_1_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() | default("N/A") + " 🔴") %}
-        {% set _ = sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}
+        {% set _ = sdwan_sessions[session_type].update({ "down": sdwan_sessions[session_type]["down"] + 1 })  %}
       {% endif %}
     {% endfor %}
   {% else %}
@@ -286,7 +286,7 @@
       {% else %}
         {% set ns.issue_found = true %}
         {% set _ = rkat_hub_2_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() | default("N/A") + " 🔴") %}
-        {% set _ = sdwan_sessions[session_type].update({ s.state: sdwan_sessions[session_type][s.state] + 1 })  %}
+        {% set _ = sdwan_sessions[session_type].update({ "down": sdwan_sessions[session_type]["down"] + 1 })  %}
       {% endif %}
     {% endfor %}
   {% else %}
