@@ -34,10 +34,10 @@
     {% set cdp_neighbors_txt = ["CDP Neighbors:"] %}
     {% for e in cdp_neighbors %}
       {# Device ID #}
-      {% set _ = cdp_neighbors_txt.append("    " + e | regex_search("^[^\s]+(?=\r\n)", multiline=true, ignorecase=false) | regex_replace("\(", " (") + ":" )%}
-      {% set _ = cdp_neighbors_txt.append("      IP Address: " + e | regex_search("(?<=Entry address\(es\): \r\n  IP address: ).+(?=\r\n)", multiline=true, ignorecase=false) )%}
-      {% set _ = cdp_neighbors_txt.append("      Interface: " + e | regex_search("(?<=Interface: ).+(?=,)", multiline=true, ignorecase=false) )%}
-      {% set _ = cdp_neighbors_txt.append("      Port ID (Outgoing Port): " + e | regex_search("(?<=Port ID \(outgoing port\): ).+(?=\r\n)", multiline=true, ignorecase=false) )%}
+      {% set _ = cdp_neighbors_txt.append("    " + e | regex_search("^[^\s]+(?=\r\n)", multiline=true, ignorecase=false) | regex_replace("\(", " (") + ":" | default("N/A")) %}
+      {% set _ = cdp_neighbors_txt.append("      IP Address: " + e | regex_search("(?<=Entry address\(es\): \r\n  IP address: ).+(?=\r\n)", multiline=true, ignorecase=false) | default("N/A")) %}
+      {% set _ = cdp_neighbors_txt.append("      Interface: " + e | regex_search("(?<=Interface: ).+(?=,)", multiline=true, ignorecase=false) | default("N/A")) %}
+      {% set _ = cdp_neighbors_txt.append("      Port ID (Outgoing Port): " + e | regex_search("(?<=Port ID \(outgoing port\): ).+(?=\r\n)", multiline=true, ignorecase=false) | default("N/A")) %}
     {% endfor %}
     {% set  cdp_neighbors_txt = cdp_neighbors_txt | join("\n") %}
   {% else %}
@@ -334,10 +334,10 @@
     {% set mist_site_txt = mist_site_stats.json.name %}
     {% set all_aps_connected = mist_site_stats.json.num_ap_connected == mist_site_stats.json.num_ap %}
     {% if all_aps_connected %}
-      {% set connected_aps_txt = mist_site_stats.json.num_ap_connected | string + "/" + mist_site_stats.json.num_ap | string %}
+      {% set connected_aps_txt = mist_site_stats.json.num_ap_connected | default("N/A") | string + "/" + mist_site_stats.json.num_ap | default("N/A") | string %}
     {% else %}
       {% set ns.issue_found = true %}
-      {% set connected_aps_txt = mist_site_stats.json.num_ap_connected | string + "/" + mist_site_stats.json.num_ap | string + " 🔴" %}
+      {% set connected_aps_txt = mist_site_stats.json.num_ap_connected | default("N/A") | string + "/" + mist_site_stats.json.num_ap | default("N/A") | string + " 🔴" %}
     {% endif %}
     {% set connected_clients_txt = mist_site_stats.json.num_clients %}
   {% else %}
@@ -352,9 +352,9 @@
   {% if mist_wlans.json | default("") %}
     {% set _ = mist_wlans_txt.append("~~SSIDs:") %}
     {% for wlan in mist_wlans.json %}
-      {% set _ = mist_wlans_txt.append("~~~~" + wlan.ssid + ":") %}
+      {% set _ = mist_wlans_txt.append("~~~~" + wlan.ssid | default("N/A") + ":") %}
       {% set _ = mist_wlans_txt.append("~~~~~~Enabled: Yes" if wlan.enabled else "~~~~~~Enabled: No") %}
-      {% set _ = mist_wlans_txt.append("~~~~~~Connected Clients: " + mist_client_stats.json | selectattr('ssid', 'match', wlan.ssid) | length | string) %}
+      {% set _ = mist_wlans_txt.append("~~~~~~Connected Clients: " + mist_client_stats.json | selectattr('ssid', 'match', wlan.ssid) | length | default("N/A") | string) %}
     {% endfor %}
   {% else %}
     {% set ns.issue_found = true %}
@@ -383,7 +383,7 @@
       {% set ns.issue_found = true %}
       {% set _ = mist_client_stats_txt.append("~~~~Median: " + rssi[rssi | length // 2] | default("N/A") | string + " 🔴") %}
     {% endif %}
-    {% set _ = mist_client_stats_txt.append("~~~~Top " + (mist_client_stats.json | sort(attribute="rssi"))[:5] | length | string + " Worst:") %}
+    {% set _ = mist_client_stats_txt.append("~~~~Top " + (mist_client_stats.json | sort(attribute="rssi"))[:5] | length | default("N/A") | string + " Worst:") %}
     {% for c in (mist_client_stats.json | sort(attribute="rssi"))[:5] %}
       {% if c.hostname | default("") and c.hostname | default("") != "\"\"" %}
         {% set _ = mist_client_stats_txt.append("~~~~~~" + c.ip | default("0.0.0.0") + " (" + c.hostname + "):") %}
@@ -400,7 +400,7 @@
       {% else %}
         {% set _ = mist_client_stats_txt.append("~~~~~~~~SNR: " + c.snr | default("N/A") | string + " 🔴") %}
       {% endif %}
-      {% set _ = mist_client_stats_txt.append("~~~~~~~~SSID: " + c.ssid | default("N/A") | default("")) %}
+      {% set _ = mist_client_stats_txt.append("~~~~~~~~SSID: " + c.ssid | default("N/A")) %}
       {% set _ = mist_client_stats_txt.append("~~~~~~~~Channel: " + c.channel | default("N/A") | string) %}
       {% set _ = mist_client_stats_txt.append("~~~~~~~~MAC Address: " + c.mac | default("N/A")) %}
       {% set _ = mist_client_stats_txt.append("~~~~~~~~Username: " + c.username | default("")) %}
