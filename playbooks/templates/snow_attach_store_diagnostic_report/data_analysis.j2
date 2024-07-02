@@ -34,7 +34,7 @@
     {% set cdp_neighbors_txt = ["CDP Neighbors:"] %}
     {% for e in cdp_neighbors %}
       {# Device ID #}
-      {% set _ = cdp_neighbors_txt.append("    " + e | regex_search("^[^\s]+(?=\r\n)", multiline=true, ignorecase=false) | regex_replace("\(", " (") + ":" | default("N/A")) %}
+      {% set _ = cdp_neighbors_txt.append("    " + (e | regex_search("^[^\s]+(?=\r\n)", multiline=true, ignorecase=false) | regex_replace("\(", " (") | default("N/A (hostname parse failed)")) + ":") %}
       {% set _ = cdp_neighbors_txt.append("      IP Address: " + e | regex_search("(?<=Entry address\(es\): \r\n  IP address: ).+(?=\r\n)", multiline=true, ignorecase=false) | default("N/A")) %}
       {% set _ = cdp_neighbors_txt.append("      Interface: " + e | regex_search("(?<=Interface: ).+(?=,)", multiline=true, ignorecase=false) | default("N/A")) %}
       {% set _ = cdp_neighbors_txt.append("      Port ID (Outgoing Port): " + e | regex_search("(?<=Port ID \(outgoing port\): ).+(?=\r\n)", multiline=true, ignorecase=false) | default("N/A")) %}
@@ -242,7 +242,7 @@
       {% set session_type = s["local-color"] | regex_replace("(\d$)|(^biz-)", "") %}
       {% set _ = sdwan_sessions[session_type].update({ "count": sdwan_sessions[session_type]["count"] + 1 })  %}
       {% if s.state == "up" %}
-        {% set _ = asbc_hub_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() | default("N/A")) %}
+        {% set _ = asbc_hub_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title()) %}
       {% else %}
         {% set ns.issue_found = true %}
         {% set _ = asbc_hub_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() | default("N/A") + " 🔴") %}
@@ -262,7 +262,7 @@
       {% set session_type = s["local-color"] | regex_replace("(\d$)|(^biz-)", "") %}
       {% set _ = sdwan_sessions[session_type].update({ "count": sdwan_sessions[session_type]["count"] + 1 })  %}
       {% if s.state == "up" %}
-        {% set _ = rkat_hub_1_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() | default("N/A")) %}
+        {% set _ = rkat_hub_1_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title()) %}
       {% else %}
         {% set ns.issue_found = true %}
         {% set _ = rkat_hub_1_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() | default("N/A") + " 🔴") %}
@@ -282,7 +282,7 @@
       {% set session_type = s["local-color"] | regex_replace("(\d$)|(^biz-)", "") %}
       {% set _ = sdwan_sessions[session_type].update({ "count": sdwan_sessions[session_type]["count"] + 1 })  %}
       {% if s.state == "up" %}
-        {% set _ = rkat_hub_2_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() | default("N/A")) %}
+        {% set _ = rkat_hub_2_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title()) %}
       {% else %}
         {% set ns.issue_found = true %}
         {% set _ = rkat_hub_2_router_txt.append("~~~~~~" + s["color"].title() + ": " + s["state"].title() | default("N/A") + " 🔴") %}
@@ -403,7 +403,6 @@
       {% set _ = mist_client_stats_txt.append("~~~~~~~~SSID: " + c.ssid | default("N/A")) %}
       {% set _ = mist_client_stats_txt.append("~~~~~~~~Channel: " + c.channel | default("N/A") | string) %}
       {% set _ = mist_client_stats_txt.append("~~~~~~~~MAC Address: " + c.mac | default("N/A")) %}
-      {% set _ = mist_client_stats_txt.append("~~~~~~~~Username: " + c.username | default("")) %}
     {% endfor %}
   {% else %}
     {% set ns.issue_found = true %}
