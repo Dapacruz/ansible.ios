@@ -12,6 +12,7 @@ Switch: {{ store_switch }}
 Router: {{ store_router }}
 Cisco SD-WAN: {% if sdwan_store %}Yes{% else %}No{% endif +%}
 Mist Wireless: {% if mist_store %}Yes{% else %}No{% endif +%}
+{{ da.store_wan_circuits_txt}}
 
 
 ##### Recommended Next Steps ##############################

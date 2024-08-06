@@ -49,6 +49,41 @@
 {% endif %}
 {#  #}
 {#  #}
+{# Store WAN Circuits #}
+{% if not store_wan_circuits.stderr | default("") %}
+  {% if store_wan_circuits %}
+    {% set store_wan_circuits_txt = ["WAN Circuits:"] %}
+    {% for i in range(1, 6) %}
+      {% if i == 1 %}
+        {% set suffix = "" %}
+      {% else %}
+        {% set suffix = "_" + i | string %}
+      {% endif %}
+      {% if store_wan_circuits["u_vendor" + suffix] %}
+        {% set _ = store_wan_circuits_txt.append("  " + store_wan_circuits["u_vendor" + suffix] + ":") %}
+        {% set _ = store_wan_circuits_txt.append("    Service: " + store_wan_circuits["u_service" + suffix]) %}
+        {% if store_wan_circuits["u_circuit_id_access" + suffix] %}
+        {% set _ = store_wan_circuits_txt.append("    Access:") %}
+          {% set _ = store_wan_circuits_txt.append("      Circuit ID: " + store_wan_circuits["u_circuit_id_access" + suffix]) %}
+          {% set _ = store_wan_circuits_txt.append("      Speed: " + store_wan_circuits["u_access_speed" + suffix]) %}
+        {% endif %}
+        {% if store_wan_circuits["u_circuit_id_pip" + suffix] %}
+        {% set _ = store_wan_circuits_txt.append("    PIP:") %}
+          {% set _ = store_wan_circuits_txt.append("      Circuit ID: " + store_wan_circuits["u_circuit_id_pip" + suffix]) %}
+          {% set _ = store_wan_circuits_txt.append("      Speed: " + store_wan_circuits["u_pip_speed" + suffix]) %}
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+    {% set  store_wan_circuits_txt = store_wan_circuits_txt | join("\n") %}
+  {% else %}
+    {% set store_wan_circuits_txt = "WAN Circuits: N/A 🔴" %}
+  {% endif %}
+{% else %}
+  {% set ns.issue_found = true %}
+  {% set store_wan_circuits_txt = "WAN Circuits: N/A 🔴" %}
+{% endif %}
+{#  #}
+{#  #}
 {# Rocklin MPLS Router Pingable #}
 {% if not store_router_ping.stderr | default("failed") %}
   {% set store_router_pingable = true if store_router_ping.stdout | regex_search("Success rate is [1-9]", multiline=true, ignorecase=false) else false %}

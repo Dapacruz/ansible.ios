@@ -37,6 +37,17 @@
       async: 30
       poll: 0
 
+    - name: ServiceNow | Fetch store WAN circuits
+      ansible.builtin.uri:
+        url: "{{ snow_instance }}/api/now/v1/table/u_telecom?sysparm_display_value=true&sysparm_fields=u_vendor,u_vendor_1,u_vendor_2,u_vendor_3,u_vendor_4,u_vendor_5,u_vendor_6,u_service,u_service_1,u_service_2,u_service_3,u_service_4,u_service_5,u_service_6,u_circuit_id_access,u_circuit_id_access_1,u_circuit_id_access_2,u_circuit_id_access_3,u_circuit_id_access_4,u_circuit_id_access_5,u_circuit_id_access_6,u_circuit_id_pip,u_circuit_id_pip_1,u_circuit_id_pip_2,u_circuit_id_pip_3,u_circuit_id_pip_4,u_circuit_id_pip_5,u_circuit_id_pip_6,u_pip_speed,u_pip_speed_1,u_pip_speed_2,u_pip_speed_3,u_pip_speed_4,u_pip_speed_5,u_pip_speed_6,u_access_speed,u_access_speed_1,u_access_speed_2,u_access_speed_3,u_access_speed_4,u_access_speed_5,u_access_speed_6&sysparm_query=u_store_statusANYTHING%5Eu_store_numberSTARTSWITH{{ store_number }}"
+        user: "{{ snow_username }}"
+        password: "{{ snow_password }}"
+        method: GET
+        force_basic_auth: true
+      register: store_wan_circuits_job
+      async: 30
+      poll: 0
+
     - name: ServiceNow | Wait for async jobs to finish
       ansible.builtin.async_status:
         jid: "{{ job.ansible_job_id }}"
@@ -44,7 +55,7 @@
       until: jobs.finished
       retries: 30
       delay: 1
-      loop: "{{ [store_details_job, store_network_details_job] }}"
+      loop: "{{ [store_details_job, store_network_details_job, store_wan_circuits_job] }}"
       loop_control:
         loop_var: job
 
@@ -52,6 +63,7 @@
       ansible.builtin.set_fact:
         store_details: "{{ jobs.results[0] }}"
         store_network_details: "{{ jobs.results[1] }}"
+        store_wan_circuits: "{{ jobs.results[2].json.result[0] | default('') }}"
 
     - name: ServiceNow | Set store facts
       ansible.builtin.set_fact:
