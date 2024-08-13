@@ -170,10 +170,10 @@
 {% if not store_internet_egress.stderr | default("failed") %}
   {% if store_internet_egress.stdout | regex_search("asgi1", multiline=true, ignorecase=false) %}
     {% set store_internet_egress_txt = "Ashburn" %}
-  {% elif store_internet_egress.stdout | regex_search("rkat1", multiline=true, ignorecase=false)  %}
-    {% set store_internet_egress_txt = "Rocklin" %}
   {% elif store_internet_egress.stdout | regex_search("sast1", multiline=true, ignorecase=false)  %}
     {% set store_internet_egress_txt = "Sacramento" %}
+  {% elif store_internet_egress.stdout | regex_search("rkat1", multiline=true, ignorecase=false)  %}
+    {% set store_internet_egress_txt = "Rocklin" %}
   {% else %}
     {% set ns.issue_found = true %}
     {% set store_internet_egress_txt = "Unknown 🔴" %}
