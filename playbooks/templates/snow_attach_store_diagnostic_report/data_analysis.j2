@@ -1,5 +1,25 @@
 {% set ns = namespace(issue_found = false) %}
 {# Process Data #}
+{# Recent Store Related Incidents #}
+{% if recent_incidents %}
+  {% set recent_incidents_txt = ["Recent Store Related Incidents (Past 15 Minutes):"] %}
+  {% for inc in recent_incidents | sort(attribute="incident_created_on")  %}
+    {% set inc_store_details = recent_inc_store_details | selectattr("u_store_number", "match", inc.store_number) | first %}
+    {% set _ = recent_incidents_txt.append("  " + inc.incident + ":") %}
+    {% set _ = recent_incidents_txt.append("    Created On: " + inc.incident_created_on | default("N/A")) %}
+    {% set _ = recent_incidents_txt.append("    Link: " + inc.incident_url | default("N/A")) %}
+    {% set _ = recent_incidents_txt.append("    Store:") %}
+    {% set _ = recent_incidents_txt.append("      Number: " + inc_store_details["u_store_number"] | default("N/A")) %}
+    {% set _ = recent_incidents_txt.append("      Name: " + inc_store_details["u_store_name"] | default("N/A")) %}
+    {% set _ = recent_incidents_txt.append("      Concept: " + inc_store_details["u_concept"] | default("N/A")) %}
+    {% set _ = recent_incidents_txt.append("      Location: " + inc_store_details["u_city"] + ", " + inc_store_details["u_state_province"] | default("N/A")) %}
+  {% endfor %}
+  {% set  recent_incidents_txt = recent_incidents_txt | join("\n") %}
+{% else %}
+  {% set recent_incidents_txt = "Recent Store Related Incidents (Past 15 Minutes): None" %}
+{% endif %}
+{#  #}
+{#  #}
 {# Store Switch Pingable #}
 {% if not store_switch_ping.stderr | default("failed") %}
   {% set store_switch_pingable = true if store_switch_ping.stdout | regex_search("Success rate is [1-9]", multiline=true, ignorecase=false) else false %}
@@ -196,7 +216,7 @@
 {% else %}
   {% set ns.issue_found = true %}
   {% set dns_resolves = "unknown" %}
-    {% set dns_resolves_txt = "N/A 🔴" %}
+  {% set dns_resolves_txt = "N/A 🔴" %}
 {% endif %}
 {#  #}
 {#  #}
@@ -210,7 +230,7 @@
   {% endif %}
 {% else %}
   {% set ns.issue_found = true %}
-    {% set ws_site_reachable_txt = "N/A 🔴" %}
+  {% set ws_site_reachable_txt = "N/A 🔴" %}
 {% endif %}
 {#  #}
 {#  #}
@@ -226,7 +246,7 @@
 {% else %}
   {% set ns.issue_found = true %}
   {% set store_wide_web_reachable = "unknown" %}
-    {% set store_wide_web_reachable_txt = "N/A 🔴" %}
+  {% set store_wide_web_reachable_txt = "N/A 🔴" %}
 {% endif %}
 {#  #}
 {#  #}
@@ -240,7 +260,7 @@
   {% endif %}
 {% else %}
   {% set ns.issue_found = true %}
-    {% set verifone_api_reachable_txt = "N/A 🔴" %}
+  {% set verifone_api_reachable_txt = "N/A 🔴" %}
 {% endif %}
 {#  #}
 {#  #}

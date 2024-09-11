@@ -76,6 +76,38 @@
         store_bb_tun1: "{{ store_network_details.json.result[0].u_bb_tunnel1 }}"
         mist_store: "{{ store_details.json.result[0].u_poc_wifi }}"
 
+    - name: ServiceNow | Fetch recent incident store details
+      block:
+        - name: ServiceNow | Fetch store details
+          ansible.builtin.uri:
+            url: "{{ inc.store_url }}"
+            user: "{{ snow_username }}"
+            password: "{{ snow_password }}"
+            method: GET
+            force_basic_auth: true
+          register: recent_inc_store_details_jobs
+          async: 30
+          poll: 0
+          loop: "{{ recent_incidents }}"
+          loop_control:
+            loop_var: inc
+
+        - name: ServiceNow | Wait for async jobs to finish
+          ansible.builtin.async_status:
+            jid: "{{ job.ansible_job_id }}"
+          register: jobs
+          until: jobs.finished
+          retries: 30
+          delay: 1
+          loop: "{{ recent_inc_store_details_jobs.results }}"
+          loop_control:
+            loop_var: job
+
+        - name: ServiceNow | Set recent incident store details fact
+          ansible.builtin.set_fact:
+            recent_inc_store_details: "{{ jobs.results | map(attribute='json') | map(attribute='result') }}"
+      when: recent_incidents | default("")
+
     - name: ServiceNow | Generate POS subnet host range
       ansible.builtin.command: /usr/bin/python3
       args:
