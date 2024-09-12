@@ -88,7 +88,7 @@
           register: recent_inc_store_details_jobs
           async: 30
           poll: 0
-          loop: "{{ recent_incidents }}"
+          loop: "{{ recent_incidents | from_json }}"
           loop_control:
             loop_var: inc
 
