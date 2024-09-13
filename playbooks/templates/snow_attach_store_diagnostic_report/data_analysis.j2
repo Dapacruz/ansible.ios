@@ -7,6 +7,7 @@
     {% set inc_store_details = recent_inc_store_details | selectattr("u_store_number", "match", inc.store_number) | first %}
     {% set _ = recent_incidents_txt.append("  " + inc.incident + ":") %}
     {% set _ = recent_incidents_txt.append("    Created On: " + inc.incident_created_on | default("N/A")) %}
+    {% set _ = recent_incidents_txt.append("    Description: " + inc.incident_description | default("N/A")) %}
     {% set _ = recent_incidents_txt.append("    Link: " + inc.incident_url | default("N/A")) %}
     {% set _ = recent_incidents_txt.append("    Store:") %}
     {% set _ = recent_incidents_txt.append("      Number: " + inc_store_details["u_store_number"] | default("N/A")) %}
