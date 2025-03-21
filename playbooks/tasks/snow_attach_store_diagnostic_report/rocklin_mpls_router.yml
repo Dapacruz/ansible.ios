@@ -3,13 +3,13 @@
   block:
     - name: Rocklin MPLS Router | Create ios-cli configuration file
       ansible.builtin.copy:
-        dest: /home/runner/.ios-cli.yml
+        dest: /runner/.ios-cli.yml
         content: |
           apikey: "{{ panw_api_token }}"
           user: "{{ ansible_user }}"
           password: "{{ ansible_ssh_pass }}"
       no_log: true
-      when: "'/home/runner/.ios-cli.yml' is not file"
+      when: "'/runner/.ios-cli.yml' is not file"
 
     - name: Rocklin MPLS Router | Check route table for store POS subnet
       ansible.builtin.command: >

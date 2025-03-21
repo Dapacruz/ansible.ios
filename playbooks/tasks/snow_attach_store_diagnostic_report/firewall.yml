@@ -3,13 +3,13 @@
   block:
     - name: Firewall | Create panos-cli configuration file
       ansible.builtin.copy:
-        dest: /home/runner/.panos-cli.yml
+        dest: /runner/.panos-cli.yml
         content: |
           apikey: "{{ panw_api_token }}"
           user: "{{ panw_user }}"
           password: "{{ panw_password }}"
       no_log: true
-      when: "'/home/runner/.panos-cli.yml' is not file"
+      when: "'/runner/.panos-cli.yml' is not file"
 
     - name: Firewall | Fetch Ashburn active Verifone sessions
       ansible.builtin.shell: "{{ playbook_dir }}/library/go/panos-cli firewall run commands --insecure --expect-timeout 60 --command 'show session all filter state active destination {{ verifone_ip }} | match {{ pin_pad_subnet_host_range_regex }}' {{ firewalls.asbc1_corp_edge }} | egrep '\\*{3} show|ACTIVE'"

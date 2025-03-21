@@ -9,13 +9,13 @@
     block:
       - name: Create panos-cli configuration file
         ansible.builtin.copy:
-          dest: /home/runner/.panos-cli.yml
+          dest: /runner/.panos-cli.yml
           content: |
             apikey: "{{ panw_api_token }}"
             user: "{{ panw_user }}"
             password: "{{ panw_password }}"
         no_log: true
-        when: "'/home/runner/.panos-cli.yml' is not file"
+        when: "'/runner/.panos-cli.yml' is not file"
 
       - name: Fetch Ashburn active partner connections
         ansible.builtin.shell: "{{ playbook_dir }}/library/go/panos-cli firewall run commands --no-config --insecure --expect-timeout 60 --user {{ panos_user }} --password {{ panos_ssh_pass }} --command 'show session all filter state active destination {{ partner.ip }} count yes' {{ firewalls.asbc1_corp_edge }} | egrep '\\*{3} show|ACTIVE'"
