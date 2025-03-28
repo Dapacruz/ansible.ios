@@ -171,7 +171,7 @@ class NetBrain:
             "password": password,
         }
 
-        response = requests.get(
+        response = requests.post(
             f"{self.base_url}/Session", json=payload, verify=self.verify
         )
         response.raise_for_status()
