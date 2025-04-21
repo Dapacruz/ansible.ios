@@ -14,7 +14,7 @@
     {% set _ = recent_incidents_txt.append("      Number: " + inc_store_details["u_store_number"] | default("N/A")) %}
     {% set _ = recent_incidents_txt.append("      Name: " + inc_store_details["u_store_name"] | default("N/A")) %}
     {% set _ = recent_incidents_txt.append("      Concept: " + inc_store_details["u_concept"] | default("N/A")) %}
-    {% set _ = recent_incidents_txt.append("      Location: " + inc_store_details["u_city"] + ", " + inc_store_details["u_state_province"] | default("N/A")) %}
+    {% set _ = recent_incidents_txt.append("      Location: " + inc_store_details["u_city"] | default("N/A") + ", " + inc_store_details["u_state_province"] | default("N/A")) %}
   {% endfor %}
   {% set  recent_incidents_txt = recent_incidents_txt | join("\n") %}
 {% else %}
